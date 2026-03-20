@@ -1,0 +1,17 @@
+-- 運動記錄表
+-- 參考: prd.md Section 4.1
+
+CREATE TABLE exercise_records (
+    id TEXT NOT NULL PRIMARY KEY,
+    type TEXT NOT NULL,
+    start_time INTEGER,
+    duration_seconds INTEGER,
+    distance_km REAL,
+    route_json TEXT,
+    encoded_polyline TEXT,
+    steps INTEGER,
+    calories_burned REAL,
+    weight_at_time_kg REAL,
+    synced_to_health INTEGER NOT NULL DEFAULT 0,
+    health_platform_id TEXT
+) AS ExerciseRecord;

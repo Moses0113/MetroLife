@@ -1,0 +1,12 @@
+-- 健康同步日誌表
+-- 參考: prd.md Section 4.1
+
+CREATE TABLE health_sync_logs (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    sync_time INTEGER NOT NULL,
+    platform TEXT NOT NULL,
+    sync_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    records_count INTEGER,
+    error_message TEXT
+) AS HealthSyncLog;
