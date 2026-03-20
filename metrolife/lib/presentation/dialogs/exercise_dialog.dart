@@ -4,7 +4,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
-import 'package:metrolife/core/utils/currency_utils.dart';
 import 'package:metrolife/domain/providers/exercise_provider.dart';
 import 'package:metrolife/domain/providers/achievement_provider.dart';
 import 'package:metrolife/presentation/widgets/diligent_rabbit_overlay.dart';
@@ -20,12 +19,7 @@ class ExerciseDialog extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: const ExerciseDialog(),
-      ),
+      builder: (ctx) => const ExerciseDialog(),
     );
   }
 }
@@ -33,7 +27,7 @@ class ExerciseDialog extends ConsumerStatefulWidget {
 class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
   String _type = 'running';
   final _minutesCtrl = TextEditingController();
-  double _weightKg = 70.0;
+  final double _weightKg = 70.0;
 
   @override
   void dispose() {
@@ -44,73 +38,72 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final insets = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      margin: const EdgeInsets.all(AppTheme.spacingMd),
-      padding: const EdgeInsets.all(AppTheme.spacingLg),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.bgSecondaryDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            '記錄運動',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    return Padding(
+      padding: EdgeInsets.only(bottom: insets),
+      child: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(AppTheme.spacingMd),
+          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.bgSecondaryDark : Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
           ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Exercise type grid
-          Wrap(
-            spacing: AppTheme.spacingSm,
-            runSpacing: AppTheme.spacingSm,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTypeChip('跑步', 'running', Icons.directions_run),
-              _buildTypeChip('游泳', 'swimming', Icons.pool),
-              _buildTypeChip('乒乓球', 'table_tennis', Icons.sports_tennis),
-              _buildTypeChip('單車', 'cycling', Icons.directions_bike),
-              _buildTypeChip('瑜伽', 'yoga', Icons.self_improvement),
-              _buildTypeChip('健身', 'gym', Icons.fitness_center),
+              const Text(
+                '記錄運動',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              Wrap(
+                spacing: AppTheme.spacingSm,
+                runSpacing: AppTheme.spacingSm,
+                children: [
+                  _buildTypeChip('跑步', 'running', Icons.directions_run),
+                  _buildTypeChip('游泳', 'swimming', Icons.pool),
+                  _buildTypeChip('乒乓球', 'table_tennis', Icons.sports_tennis),
+                  _buildTypeChip('單車', 'cycling', Icons.directions_bike),
+                  _buildTypeChip('瑜伽', 'yoga', Icons.self_improvement),
+                  _buildTypeChip('健身', 'gym', Icons.fitness_center),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              TextField(
+                controller: _minutesCtrl,
+                decoration: const InputDecoration(
+                  labelText: '時長 (分鐘)',
+                  hintText: '30',
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildCaloriesPreview(),
+              const SizedBox(height: AppTheme.spacingMd),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('取消'),
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingSm),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _save,
+                      child: const Text('儲存'),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Duration
-          TextField(
-            controller: _minutesCtrl,
-            decoration: const InputDecoration(
-              labelText: '時長 (分鐘)',
-              hintText: '30',
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Estimated calories
-          _buildCaloriesPreview(),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Actions
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('取消'),
-                ),
-              ),
-              const SizedBox(width: AppTheme.spacingSm),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _save,
-                  child: const Text('儲存'),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -153,13 +146,11 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
   Widget _buildCaloriesPreview() {
     final minutes = int.tryParse(_minutesCtrl.text) ?? 0;
     if (minutes <= 0) return const SizedBox();
-
     final calories = ExerciseService.calculateExerciseCalories(
       _type,
       _weightKg,
       minutes,
     );
-
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
@@ -189,13 +180,11 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
   void _save() {
     final minutes = int.tryParse(_minutesCtrl.text);
     if (minutes == null || minutes <= 0) return;
-
     final calories = ExerciseService.calculateExerciseCalories(
       _type,
       _weightKg,
       minutes,
     );
-
     ref
         .read(exerciseServiceProvider)
         .recordExercise(
@@ -205,16 +194,12 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
           caloriesBurned: calories,
           weightAtTimeKg: _weightKg,
         );
-
     Navigator.pop(context);
-
-    // Check for new achievements
     Future.delayed(const Duration(milliseconds: 500), () async {
       final streak = await ref.read(streakDaysProvider.future);
       final newMedal = await ref
           .read(achievementServiceProvider)
           .checkAndAwardMedals(streak);
-
       if (newMedal != null && context.mounted) {
         final scene = switch (newMedal) {
           'bronze_3days' => RabbitScene.achievementBronze,

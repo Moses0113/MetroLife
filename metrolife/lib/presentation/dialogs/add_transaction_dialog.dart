@@ -4,8 +4,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
-import 'package:metrolife/core/utils/currency_utils.dart';
-import 'package:metrolife/data/local/database.dart';
 import 'package:metrolife/domain/providers/transaction_provider.dart';
 import 'package:metrolife/domain/providers/category_provider.dart';
 import 'package:metrolife/presentation/widgets/diligent_rabbit_overlay.dart';
@@ -22,12 +20,7 @@ class AddTransactionDialog extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: const AddTransactionDialog(),
-      ),
+      builder: (ctx) => const AddTransactionDialog(),
     );
   }
 }
@@ -52,130 +45,125 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     final categoriesAsync = _type == 'expense'
         ? ref.watch(expenseCategoriesProvider)
         : ref.watch(incomeCategoriesProvider);
-
     final dateStr =
         '${_date.day.toString().padLeft(2, '0')}/${_date.month.toString().padLeft(2, '0')}/${_date.year}';
+    final insets = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      margin: const EdgeInsets.all(AppTheme.spacingMd),
-      padding: const EdgeInsets.all(AppTheme.spacingLg),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.bgSecondaryDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            '新增收支',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    return Padding(
+      padding: EdgeInsets.only(bottom: insets),
+      child: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(AppTheme.spacingMd),
+          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.bgSecondaryDark : Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
           ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Type toggle
-          Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTypeToggle('支出', 'expense'),
-              const SizedBox(width: AppTheme.spacingSm),
-              _buildTypeToggle('收入', 'income'),
-            ],
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Amount
-          TextField(
-            controller: _amountCtrl,
-            decoration: const InputDecoration(
-              labelText: '金額',
-              prefixText: '\$ ',
-              hintText: '0.00',
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            autofocus: true,
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Category
-          categoriesAsync.when(
-            loading: () => const LinearProgressIndicator(),
-            error: (e, _) => Text('無法載入分類: $e'),
-            data: (cats) {
-              // Auto-select first category if none selected
-              if (_categoryId == null && cats.isNotEmpty) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) setState(() => _categoryId = cats.first.id);
-                });
-              }
-              if (cats.isEmpty) {
-                return const Text('暫無分類，請先在設定中添加');
-              }
-              return DropdownButtonFormField<String>(
-                value: cats.any((c) => c.id == _categoryId)
-                    ? _categoryId
-                    : null,
-                decoration: const InputDecoration(labelText: '分類'),
-                items: cats
-                    .map(
-                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _categoryId = v),
-              );
-            },
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Date
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(
-              Icons.calendar_today,
-              color: AppTheme.accentPrimary,
-            ),
-            title: Text(dateStr),
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: _date,
-                firstDate: DateTime(2020),
-                lastDate: DateTime(2030),
-              );
-              if (picked != null) setState(() => _date = picked);
-            },
-          ),
-          const SizedBox(height: AppTheme.spacingSm),
-
-          // Note
-          TextField(
-            controller: _noteCtrl,
-            decoration: const InputDecoration(
-              labelText: '備註 (選填)',
-              hintText: '輸入備註...',
-            ),
-            maxLines: 2,
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-
-          // Actions
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('取消'),
-                ),
+              const Text(
+                '新增收支',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-              const SizedBox(width: AppTheme.spacingSm),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _save,
-                  child: const Text('儲存'),
+              const SizedBox(height: AppTheme.spacingMd),
+              Row(
+                children: [
+                  _buildTypeToggle('支出', 'expense'),
+                  const SizedBox(width: AppTheme.spacingSm),
+                  _buildTypeToggle('收入', 'income'),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              TextField(
+                controller: _amountCtrl,
+                decoration: const InputDecoration(
+                  labelText: '金額',
+                  prefixText: '\$ ',
+                  hintText: '0.00',
                 ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              categoriesAsync.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => Text('無法載入分類: $e'),
+                data: (cats) {
+                  if (_categoryId == null && cats.isNotEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _categoryId = cats.first.id);
+                    });
+                  }
+                  if (cats.isEmpty) return const Text('暫無分類，請先在設定中添加');
+                  return DropdownButtonFormField<String>(
+                    value: cats.any((c) => c.id == _categoryId)
+                        ? _categoryId
+                        : null,
+                    decoration: const InputDecoration(labelText: '分類'),
+                    items: cats
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _categoryId = v),
+                  );
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.calendar_today,
+                  color: AppTheme.accentPrimary,
+                ),
+                title: Text(dateStr),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _date,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                  );
+                  if (picked != null) setState(() => _date = picked);
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingSm),
+              TextField(
+                controller: _noteCtrl,
+                decoration: const InputDecoration(
+                  labelText: '備註 (選填)',
+                  hintText: '輸入備註...',
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('取消'),
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingSm),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _save,
+                      child: const Text('儲存'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -214,13 +202,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   void _save() {
     final amountText = _amountCtrl.text.trim();
     if (amountText.isEmpty || _categoryId == null) return;
-
     final amount = double.tryParse(amountText);
     if (amount == null || amount <= 0) return;
-
-    // Negative for expense, positive for income
     final signedAmount = _type == 'expense' ? -amount : amount;
-
     ref
         .read(transactionServiceProvider)
         .addTransaction(
@@ -230,16 +214,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
           transactionType: _type,
         );
-
     Navigator.pop(context);
-
-    // Trigger rabbit for income
     if (_type == 'income') {
-      // Small delay so the dialog closes first
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (context.mounted) {
+        if (context.mounted)
           DiligentRabbitOverlay.show(context, scene: RabbitScene.incomeAdded);
-        }
       });
     }
   }

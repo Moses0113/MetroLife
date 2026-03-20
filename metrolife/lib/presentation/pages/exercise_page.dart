@@ -1,10 +1,12 @@
 /// 運動頁 - 完整實現 (prd.md §3.4, UI.md §3.4)
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/exercise_provider.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
+import 'package:metrolife/domain/providers/health_provider.dart';
 import 'package:metrolife/presentation/dialogs/exercise_dialog.dart';
 
 class ExercisePage extends ConsumerStatefulWidget {
@@ -57,12 +59,48 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
     });
   }
 
+  Future<void> _handleHealthSync(WidgetRef ref) async {
+    final healthService = ref.read(healthServiceProvider);
+
+    // Request permissions (configure is called internally)
+    final granted = await healthService.requestPermissions();
+
+    if (granted) {
+      ref.read(healthConnectedProvider.notifier).setConnected(true);
+
+      // Refresh health data
+      ref.invalidate(healthStepsProvider);
+      ref.invalidate(healthCaloriesProvider);
+      ref.invalidate(weeklyStepsProvider);
+
+      // Try to read weight from health
+      final weight = await healthService.getLatestWeight();
+      if (weight != null && weight > 0) {
+        _weightCtrl.text = weight.toStringAsFixed(1);
+        ref.read(userProfileProvider.notifier).updateWeight(weight);
+        _calculateBmi();
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('未能獲得 Health Connect 權限')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final stepsAsync = ref.watch(todayStepsProvider);
-    final caloriesAsync = ref.watch(todayCaloriesProvider);
+    final healthConnected = ref.watch(healthConnectedProvider);
+    // Use health data when connected, fall back to local DB
+    final stepsAsync = healthConnected
+        ? ref.watch(healthStepsProvider)
+        : ref.watch(todayStepsProvider);
+    final caloriesAsync = healthConnected
+        ? ref.watch(healthCaloriesProvider)
+        : ref.watch(todayCaloriesProvider);
     final streakAsync = ref.watch(streakDaysProvider);
     final profile = ref.watch(userProfileProvider);
 
@@ -89,23 +127,35 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(
-                color: AppTheme.textTertiary.withValues(alpha: 0.2),
+                color: ref.watch(healthConnectedProvider)
+                    ? AppTheme.success
+                    : AppTheme.textTertiary.withValues(alpha: 0.2),
               ),
             ),
             child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFF9E9E9E),
+              leading: CircleAvatar(
+                backgroundColor: ref.watch(healthConnectedProvider)
+                    ? AppTheme.success
+                    : const Color(0xFF9E9E9E),
                 radius: 16,
                 child: Icon(
-                  Icons.health_and_safety,
+                  ref.watch(healthConnectedProvider)
+                      ? Icons.check
+                      : Icons.health_and_safety,
                   color: Colors.white,
                   size: 16,
                 ),
               ),
-              title: Text(l10n.healthNotConnected),
-              subtitle: const Text('Health Connect'),
+              title: Text(
+                ref.watch(healthConnectedProvider)
+                    ? l10n.healthConnected
+                    : l10n.healthNotConnected,
+              ),
+              subtitle: Text(
+                Platform.isAndroid ? 'Health Connect' : 'Apple Health',
+              ),
               trailing: OutlinedButton(
-                onPressed: () {},
+                onPressed: () => _handleHealthSync(ref),
                 child: Text(l10n.syncNow),
               ),
             ),

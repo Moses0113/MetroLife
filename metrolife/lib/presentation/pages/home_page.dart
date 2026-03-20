@@ -5,6 +5,7 @@ import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/core/utils/date_utils.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
+import 'package:metrolife/domain/providers/todo_provider.dart';
 import 'package:metrolife/presentation/widgets/weather_card.dart';
 import 'package:metrolife/presentation/widgets/bus_card.dart';
 import 'package:metrolife/presentation/dialogs/nine_day_forecast_sheet.dart';
@@ -76,11 +77,7 @@ class HomePage extends ConsumerWidget {
                     ],
                   ),
                   const Divider(),
-                  const SizedBox(height: AppTheme.spacingSm),
-                  Text(
-                    l10n.noData,
-                    style: const TextStyle(color: AppTheme.textSecondary),
-                  ),
+                  _buildTodayTasks(context, ref, l10n),
                 ],
               ),
             ),
@@ -110,6 +107,69 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: AppTheme.spacingXxl),
         ],
       ),
+    );
+  }
+
+  Widget _buildTodayTasks(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
+    final todosAsync = ref.watch(todayTodosProvider);
+
+    return todosAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: LinearProgressIndicator(),
+      ),
+      error: (_, __) => Text(
+        l10n.error,
+        style: const TextStyle(color: AppTheme.textSecondary),
+      ),
+      data: (todos) {
+        if (todos.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              l10n.noData,
+              style: const TextStyle(color: AppTheme.textSecondary),
+            ),
+          );
+        }
+
+        return Column(
+          children: todos.take(5).map((todo) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      ref
+                          .read(todoServiceProvider)
+                          .toggleComplete(todo.id, true);
+                    },
+                    child: Icon(
+                      Icons.check_circle_outline,
+                      size: 20,
+                      color: AppTheme.accentPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingSm),
+                  Expanded(
+                    child: Text(
+                      todo.title,
+                      style: const TextStyle(fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }

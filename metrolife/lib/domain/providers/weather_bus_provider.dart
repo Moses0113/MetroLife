@@ -2,6 +2,7 @@
 /// 參考: prd.md Section 3.1, 5.1, 5.2
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:metrolife/data/models/weather_models.dart';
 import 'package:metrolife/data/models/bus_models.dart';
 import 'package:metrolife/data/repositories/hko_weather_service.dart';
@@ -32,9 +33,39 @@ final nineDayForecastProvider = FutureProvider<NineDayForecast>((ref) async {
   return service.getNineDayForecast(lang: 'tc');
 });
 
+/// Get current GPS position
+Future<Position?> _getCurrentPosition() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) return null;
+
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) return null;
+  }
+  if (permission == LocationPermission.deniedForever) return null;
+
+  return Geolocator.getCurrentPosition(
+    locationSettings: const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      timeLimit: Duration(seconds: 10),
+    ),
+  );
+}
+
+/// Find nearest bus stop using GPS
 final nearestBusStopProvider = FutureProvider<(BusStop, double)>((ref) async {
   final service = ref.watch(busServiceProvider);
-  // Default to Tsim Sha Tsui area if no location available
+
+  // Try GPS first
+  try {
+    final position = await _getCurrentPosition();
+    if (position != null) {
+      return service.findNearestStop(position.latitude, position.longitude);
+    }
+  } catch (_) {}
+
+  // Fallback: Tsim Sha Tsui
   return service.findNearestStop(22.2976, 114.1722);
 });
 
