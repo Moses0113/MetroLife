@@ -4,17 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/data/models/bus_models.dart';
 import 'package:metrolife/domain/providers/weather_bus_provider.dart';
+import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
+import 'package:metrolife/presentation/dialogs/bus_stop_selector.dart';
+import 'package:metrolife/presentation/dialogs/bus_route_selector.dart';
 
 class BusCard extends ConsumerWidget {
-  const BusCard({super.key, this.onRefresh});
-
-  final VoidCallback? onRefresh;
+  const BusCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nearestAsync = ref.watch(nearestBusStopProvider);
     final l10n = AppLocalizations.of(context);
+    final selectedStop = ref.watch(selectedBusStopProvider);
 
     return Card(
       child: Padding(
@@ -30,72 +31,136 @@ class BusCard extends ConsumerWidget {
                   size: 20,
                 ),
                 const SizedBox(width: AppTheme.spacingSm),
-                Text(
-                  l10n.nearestStop,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    selectedStop != null
+                        ? selectedStop.nameTc
+                        : l10n.nearestStop,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.refresh, size: 20),
-                  onPressed: () {
-                    ref.invalidate(nearestBusStopProvider);
-                    onRefresh?.call();
-                  },
+                  icon: const Icon(Icons.swap_horiz, size: 20),
+                  onPressed: () => BusStopSelector.show(context),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
               ],
             ),
             const Divider(),
-            nearestAsync.when(
-              loading: () => const SizedBox(
-                height: 60,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (err, _) => Text(
-                l10n.unableToFetchData,
-                style: const TextStyle(color: AppTheme.textSecondary),
-              ),
-              data: (result) => _buildBusInfo(context, ref, result),
-            ),
+            if (selectedStop != null)
+              _buildStopInfo(context, ref, selectedStop)
+            else
+              _buildNearestAuto(context, ref, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBusInfo(
+  Widget _buildNearestAuto(
     BuildContext context,
     WidgetRef ref,
-    (BusStop, double) result,
+    AppLocalizations l10n,
   ) {
-    final (stop, distance) = result;
+    final nearestAsync = ref.watch(nearestBusStopProvider);
+
+    return nearestAsync.when(
+      loading: () => const SizedBox(
+        height: 60,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, _) => Column(
+        children: [
+          Text(
+            l10n.unableToFetchData,
+            style: const TextStyle(color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => BusStopSelector.show(context),
+            child: const Text('手動選擇站點'),
+          ),
+        ],
+      ),
+      data: (result) {
+        final (stop, distance) = result;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (stop.nameEn.isNotEmpty)
+              Text(
+                stop.nameEn,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            const SizedBox(height: 4),
+            Text(
+              '📍 ${distance.toStringAsFixed(0)} ${l10n.distanceAway}',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingSm),
+            _buildEtaList(context, ref, stop.stop),
+            const SizedBox(height: AppTheme.spacingSm),
+            _buildActions(context),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStopInfo(
+    BuildContext context,
+    WidgetRef ref,
+    SelectedBusStop stop,
+  ) {
     final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          stop.nameTc.isNotEmpty ? stop.nameTc : stop.nameEn,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        if (stop.nameEn.isNotEmpty) ...[
-          const SizedBox(height: 2),
+        if (stop.nameEn.isNotEmpty)
           Text(
             stop.nameEn,
             style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
-        ],
         const SizedBox(height: 4),
-        Text(
-          '📍 ${distance.toStringAsFixed(0)} ${l10n.distanceAway}',
-          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-        ),
+        if (stop.distanceMeters > 0)
+          Text(
+            '📍 ${stop.distanceMeters.toStringAsFixed(0)} ${l10n.distanceAway}',
+            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+          ),
         const SizedBox(height: AppTheme.spacingSm),
-        _buildEtaList(context, ref, stop.stop),
+        _buildEtaList(context, ref, stop.stopId),
+        const SizedBox(height: AppTheme.spacingSm),
+        _buildActions(context),
+      ],
+    );
+  }
+
+  Widget _buildActions(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton.icon(
+          onPressed: () => BusStopSelector.show(context),
+          icon: const Icon(Icons.search, size: 16),
+          label: const Text('選站'),
+        ),
+        const SizedBox(width: AppTheme.spacingSm),
+        TextButton.icon(
+          onPressed: () => BusRouteSelector.show(context),
+          icon: const Icon(Icons.route, size: 16),
+          label: const Text('選綫'),
+        ),
       ],
     );
   }
@@ -117,54 +182,77 @@ class BusCard extends ConsumerWidget {
           );
         }
 
-        // Group by route
         final routeMap = <String, List<BusEta>>{};
         for (final eta in etas) {
           routeMap.putIfAbsent(eta.route, () => []).add(eta);
         }
 
         return Column(
-          children: routeMap.entries.take(5).map((entry) {
+          children: routeMap.entries.take(6).map((entry) {
             final route = entry.key;
             final routeEtas = entry.value;
             final nextEta = routeEtas.first;
             final etaTime = _parseEta(nextEta.eta);
+            final dest = nextEta.destTc.isNotEmpty ? nextEta.destTc : '';
 
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentPrimary,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      route,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: GestureDetector(
+                onTap: () => BusRouteSelector.show(context),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentPrimary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        route,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: AppTheme.spacingSm),
-                  Text(etaTime, style: const TextStyle(fontSize: 14)),
-                  if (nextEta.rmkTc.isNotEmpty) ...[
                     const SizedBox(width: AppTheme.spacingSm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (dest.isNotEmpty)
+                            Text(
+                              '→ $dest',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          if (nextEta.rmkTc.isNotEmpty)
+                            Text(
+                              nextEta.rmkTc,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                     Text(
-                      nextEta.rmkTc,
+                      etaTime,
                       style: const TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.textSecondary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.accentPrimary,
                       ),
                     ),
                   ],
-                ],
+                ),
               ),
             );
           }).toList(),
@@ -177,8 +265,7 @@ class BusCard extends ConsumerWidget {
     if (etaStr.isEmpty) return '—';
     try {
       final eta = DateTime.parse(etaStr);
-      final now = DateTime.now();
-      final diff = eta.difference(now);
+      final diff = eta.difference(DateTime.now());
       if (diff.inMinutes <= 0) return '即將到站';
       if (diff.inMinutes < 60) return '${diff.inMinutes} 分鐘';
       return '${diff.inMinutes ~/ 60}h ${diff.inMinutes % 60}m';

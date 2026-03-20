@@ -31,6 +31,8 @@ _BusEta _$BusEtaFromJson(Map<String, dynamic> json) => _BusEta(
   eta: json['eta'] as String? ?? '',
   rmkTc: json['rmkTc'] as String? ?? '',
   rmkEn: json['rmkEn'] as String? ?? '',
+  destTc: json['destTc'] as String? ?? '',
+  destEn: json['destEn'] as String? ?? '',
 );
 
 Map<String, dynamic> _$BusEtaToJson(_BusEta instance) => <String, dynamic>{
@@ -42,4 +44,6 @@ Map<String, dynamic> _$BusEtaToJson(_BusEta instance) => <String, dynamic>{
   'eta': instance.eta,
   'rmkTc': instance.rmkTc,
   'rmkEn': instance.rmkEn,
+  'destTc': instance.destTc,
+  'destEn': instance.destEn,
 };

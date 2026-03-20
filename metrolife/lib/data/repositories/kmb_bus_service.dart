@@ -52,6 +52,8 @@ class KmbBusService {
             eta: m['eta'] ?? '',
             rmkTc: m['rmk_tc'] ?? '',
             rmkEn: m['rmk_en'] ?? '',
+            destTc: m['dest_tc'] ?? '',
+            destEn: m['dest_en'] ?? '',
           );
         })
         .where((eta) {
@@ -124,5 +126,60 @@ class KmbBusService {
       g = (g + x / g) / 2;
     }
     return g;
+  }
+
+  /// 獲取所有巴士路綫
+  List<Map<String, dynamic>>? _cachedRoutes;
+
+  Future<List<Map<String, dynamic>>> getAllRoutes() async {
+    if (_cachedRoutes != null) return _cachedRoutes!;
+
+    final response = await _dio.get(ApiConstants.kmbRoute);
+    final data = response.data as Map<String, dynamic>;
+    final routesList = (data['data'] as List?) ?? [];
+
+    _cachedRoutes = routesList.map((e) => e as Map<String, dynamic>).toList();
+    return _cachedRoutes!;
+  }
+
+  /// 獲取指定路綫的站點列表
+  Future<List<BusStop>> getRouteStops(
+    String route,
+    String bound,
+    int serviceType,
+  ) async {
+    // 1. Get route-stop list
+    final response = await _dio.get(ApiConstants.kmbRouteStop);
+    final data = response.data as Map<String, dynamic>;
+    final allRouteStops = (data['data'] as List?) ?? [];
+
+    // 2. Filter for this route
+    final matchingStops =
+        allRouteStops.where((rs) {
+          final m = rs as Map<String, dynamic>;
+          return m['route'] == route &&
+              m['bound'] == bound &&
+              (m['service_type'] ?? 1) == serviceType;
+        }).toList()..sort(
+          (a, b) => (int.tryParse(a['seq']?.toString() ?? '0') ?? 0).compareTo(
+            int.tryParse(b['seq']?.toString() ?? '0') ?? 0,
+          ),
+        );
+
+    // 3. Get all stops to resolve names
+    final allStops = await getAllStops();
+    final stopMap = {for (var s in allStops) s.stop: s};
+
+    // 4. Build ordered list
+    final List<BusStop> result = [];
+    for (final rs in matchingStops) {
+      final stopId = (rs as Map<String, dynamic>)['stop'] as String;
+      final stop = stopMap[stopId];
+      if (stop != null) {
+        result.add(stop);
+      }
+    }
+
+    return result;
   }
 }

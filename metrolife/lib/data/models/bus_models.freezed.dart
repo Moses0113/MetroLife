@@ -290,7 +290,7 @@ as double,
 /// @nodoc
 mixin _$BusEta {
 
- String get stop; String get route; String get dir; int get serviceType; int get etaSeq; String get eta; String get rmkTc; String get rmkEn;
+ String get stop; String get route; String get dir; int get serviceType; int get etaSeq; String get eta; String get rmkTc; String get rmkEn; String get destTc; String get destEn;
 /// Create a copy of BusEta
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,16 +303,16 @@ $BusEtaCopyWith<BusEta> get copyWith => _$BusEtaCopyWithImpl<BusEta>(this as Bus
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BusEta&&(identical(other.stop, stop) || other.stop == stop)&&(identical(other.route, route) || other.route == route)&&(identical(other.dir, dir) || other.dir == dir)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.etaSeq, etaSeq) || other.etaSeq == etaSeq)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.rmkTc, rmkTc) || other.rmkTc == rmkTc)&&(identical(other.rmkEn, rmkEn) || other.rmkEn == rmkEn));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BusEta&&(identical(other.stop, stop) || other.stop == stop)&&(identical(other.route, route) || other.route == route)&&(identical(other.dir, dir) || other.dir == dir)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.etaSeq, etaSeq) || other.etaSeq == etaSeq)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.rmkTc, rmkTc) || other.rmkTc == rmkTc)&&(identical(other.rmkEn, rmkEn) || other.rmkEn == rmkEn)&&(identical(other.destTc, destTc) || other.destTc == destTc)&&(identical(other.destEn, destEn) || other.destEn == destEn));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,stop,route,dir,serviceType,etaSeq,eta,rmkTc,rmkEn);
+int get hashCode => Object.hash(runtimeType,stop,route,dir,serviceType,etaSeq,eta,rmkTc,rmkEn,destTc,destEn);
 
 @override
 String toString() {
-  return 'BusEta(stop: $stop, route: $route, dir: $dir, serviceType: $serviceType, etaSeq: $etaSeq, eta: $eta, rmkTc: $rmkTc, rmkEn: $rmkEn)';
+  return 'BusEta(stop: $stop, route: $route, dir: $dir, serviceType: $serviceType, etaSeq: $etaSeq, eta: $eta, rmkTc: $rmkTc, rmkEn: $rmkEn, destTc: $destTc, destEn: $destEn)';
 }
 
 
@@ -323,7 +323,7 @@ abstract mixin class $BusEtaCopyWith<$Res>  {
   factory $BusEtaCopyWith(BusEta value, $Res Function(BusEta) _then) = _$BusEtaCopyWithImpl;
 @useResult
 $Res call({
- String stop, String route, String dir, int serviceType, int etaSeq, String eta, String rmkTc, String rmkEn
+ String stop, String route, String dir, int serviceType, int etaSeq, String eta, String rmkTc, String rmkEn, String destTc, String destEn
 });
 
 
@@ -340,7 +340,7 @@ class _$BusEtaCopyWithImpl<$Res>
 
 /// Create a copy of BusEta
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? stop = null,Object? route = null,Object? dir = null,Object? serviceType = null,Object? etaSeq = null,Object? eta = null,Object? rmkTc = null,Object? rmkEn = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? stop = null,Object? route = null,Object? dir = null,Object? serviceType = null,Object? etaSeq = null,Object? eta = null,Object? rmkTc = null,Object? rmkEn = null,Object? destTc = null,Object? destEn = null,}) {
   return _then(_self.copyWith(
 stop: null == stop ? _self.stop : stop // ignore: cast_nullable_to_non_nullable
 as String,route: null == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
@@ -350,6 +350,8 @@ as int,etaSeq: null == etaSeq ? _self.etaSeq : etaSeq // ignore: cast_nullable_t
 as int,eta: null == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
 as String,rmkTc: null == rmkTc ? _self.rmkTc : rmkTc // ignore: cast_nullable_to_non_nullable
 as String,rmkEn: null == rmkEn ? _self.rmkEn : rmkEn // ignore: cast_nullable_to_non_nullable
+as String,destTc: null == destTc ? _self.destTc : destTc // ignore: cast_nullable_to_non_nullable
+as String,destEn: null == destEn ? _self.destEn : destEn // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -435,10 +437,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String stop,  String route,  String dir,  int serviceType,  int etaSeq,  String eta,  String rmkTc,  String rmkEn)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String stop,  String route,  String dir,  int serviceType,  int etaSeq,  String eta,  String rmkTc,  String rmkEn,  String destTc,  String destEn)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BusEta() when $default != null:
-return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,_that.eta,_that.rmkTc,_that.rmkEn);case _:
+return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,_that.eta,_that.rmkTc,_that.rmkEn,_that.destTc,_that.destEn);case _:
   return orElse();
 
 }
@@ -456,10 +458,10 @@ return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String stop,  String route,  String dir,  int serviceType,  int etaSeq,  String eta,  String rmkTc,  String rmkEn)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String stop,  String route,  String dir,  int serviceType,  int etaSeq,  String eta,  String rmkTc,  String rmkEn,  String destTc,  String destEn)  $default,) {final _that = this;
 switch (_that) {
 case _BusEta():
-return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,_that.eta,_that.rmkTc,_that.rmkEn);case _:
+return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,_that.eta,_that.rmkTc,_that.rmkEn,_that.destTc,_that.destEn);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -476,10 +478,10 @@ return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String stop,  String route,  String dir,  int serviceType,  int etaSeq,  String eta,  String rmkTc,  String rmkEn)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String stop,  String route,  String dir,  int serviceType,  int etaSeq,  String eta,  String rmkTc,  String rmkEn,  String destTc,  String destEn)?  $default,) {final _that = this;
 switch (_that) {
 case _BusEta() when $default != null:
-return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,_that.eta,_that.rmkTc,_that.rmkEn);case _:
+return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,_that.eta,_that.rmkTc,_that.rmkEn,_that.destTc,_that.destEn);case _:
   return null;
 
 }
@@ -491,7 +493,7 @@ return $default(_that.stop,_that.route,_that.dir,_that.serviceType,_that.etaSeq,
 @JsonSerializable()
 
 class _BusEta implements BusEta {
-  const _BusEta({this.stop = '', this.route = '', this.dir = '', this.serviceType = 1, this.etaSeq = 1, this.eta = '', this.rmkTc = '', this.rmkEn = ''});
+  const _BusEta({this.stop = '', this.route = '', this.dir = '', this.serviceType = 1, this.etaSeq = 1, this.eta = '', this.rmkTc = '', this.rmkEn = '', this.destTc = '', this.destEn = ''});
   factory _BusEta.fromJson(Map<String, dynamic> json) => _$BusEtaFromJson(json);
 
 @override@JsonKey() final  String stop;
@@ -502,6 +504,8 @@ class _BusEta implements BusEta {
 @override@JsonKey() final  String eta;
 @override@JsonKey() final  String rmkTc;
 @override@JsonKey() final  String rmkEn;
+@override@JsonKey() final  String destTc;
+@override@JsonKey() final  String destEn;
 
 /// Create a copy of BusEta
 /// with the given fields replaced by the non-null parameter values.
@@ -516,16 +520,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BusEta&&(identical(other.stop, stop) || other.stop == stop)&&(identical(other.route, route) || other.route == route)&&(identical(other.dir, dir) || other.dir == dir)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.etaSeq, etaSeq) || other.etaSeq == etaSeq)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.rmkTc, rmkTc) || other.rmkTc == rmkTc)&&(identical(other.rmkEn, rmkEn) || other.rmkEn == rmkEn));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BusEta&&(identical(other.stop, stop) || other.stop == stop)&&(identical(other.route, route) || other.route == route)&&(identical(other.dir, dir) || other.dir == dir)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.etaSeq, etaSeq) || other.etaSeq == etaSeq)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.rmkTc, rmkTc) || other.rmkTc == rmkTc)&&(identical(other.rmkEn, rmkEn) || other.rmkEn == rmkEn)&&(identical(other.destTc, destTc) || other.destTc == destTc)&&(identical(other.destEn, destEn) || other.destEn == destEn));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,stop,route,dir,serviceType,etaSeq,eta,rmkTc,rmkEn);
+int get hashCode => Object.hash(runtimeType,stop,route,dir,serviceType,etaSeq,eta,rmkTc,rmkEn,destTc,destEn);
 
 @override
 String toString() {
-  return 'BusEta(stop: $stop, route: $route, dir: $dir, serviceType: $serviceType, etaSeq: $etaSeq, eta: $eta, rmkTc: $rmkTc, rmkEn: $rmkEn)';
+  return 'BusEta(stop: $stop, route: $route, dir: $dir, serviceType: $serviceType, etaSeq: $etaSeq, eta: $eta, rmkTc: $rmkTc, rmkEn: $rmkEn, destTc: $destTc, destEn: $destEn)';
 }
 
 
@@ -536,7 +540,7 @@ abstract mixin class _$BusEtaCopyWith<$Res> implements $BusEtaCopyWith<$Res> {
   factory _$BusEtaCopyWith(_BusEta value, $Res Function(_BusEta) _then) = __$BusEtaCopyWithImpl;
 @override @useResult
 $Res call({
- String stop, String route, String dir, int serviceType, int etaSeq, String eta, String rmkTc, String rmkEn
+ String stop, String route, String dir, int serviceType, int etaSeq, String eta, String rmkTc, String rmkEn, String destTc, String destEn
 });
 
 
@@ -553,7 +557,7 @@ class __$BusEtaCopyWithImpl<$Res>
 
 /// Create a copy of BusEta
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? stop = null,Object? route = null,Object? dir = null,Object? serviceType = null,Object? etaSeq = null,Object? eta = null,Object? rmkTc = null,Object? rmkEn = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? stop = null,Object? route = null,Object? dir = null,Object? serviceType = null,Object? etaSeq = null,Object? eta = null,Object? rmkTc = null,Object? rmkEn = null,Object? destTc = null,Object? destEn = null,}) {
   return _then(_BusEta(
 stop: null == stop ? _self.stop : stop // ignore: cast_nullable_to_non_nullable
 as String,route: null == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
@@ -563,6 +567,8 @@ as int,etaSeq: null == etaSeq ? _self.etaSeq : etaSeq // ignore: cast_nullable_t
 as int,eta: null == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
 as String,rmkTc: null == rmkTc ? _self.rmkTc : rmkTc // ignore: cast_nullable_to_non_nullable
 as String,rmkEn: null == rmkEn ? _self.rmkEn : rmkEn // ignore: cast_nullable_to_non_nullable
+as String,destTc: null == destTc ? _self.destTc : destTc // ignore: cast_nullable_to_non_nullable
+as String,destEn: null == destEn ? _self.destEn : destEn // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

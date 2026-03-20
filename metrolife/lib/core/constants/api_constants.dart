@@ -16,4 +16,6 @@ class ApiConstants {
       'https://data.etabus.gov.hk/v1/transport/kmb';
   static const String kmbAllStops = '$kmbBaseUrl/stop';
   static const String kmbStopEta = '$kmbBaseUrl/stop-eta';
+  static const String kmbRoute = '$kmbBaseUrl/route';
+  static const String kmbRouteStop = '$kmbBaseUrl/route-stop';
 }

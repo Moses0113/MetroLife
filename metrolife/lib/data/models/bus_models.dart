@@ -31,6 +31,8 @@ abstract class BusEta with _$BusEta {
     @Default('') String eta,
     @Default('') String rmkTc,
     @Default('') String rmkEn,
+    @Default('') String destTc,
+    @Default('') String destEn,
   }) = _BusEta;
 
   factory BusEta.fromJson(Map<String, dynamic> json) => _$BusEtaFromJson(json);
