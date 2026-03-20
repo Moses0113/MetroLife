@@ -111,6 +111,12 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
     if (!_weightCtrl.selection.isValid && profile.weightKg > 0) {
       _weightCtrl.text = profile.weightKg.toStringAsFixed(0);
     }
+    // Auto-calculate BMI if values are loaded and BMI not yet calculated
+    if (_bmi == null &&
+        _heightCtrl.text.isNotEmpty &&
+        _weightCtrl.text.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _calculateBmi());
+    }
 
     return Scaffold(
       appBar: AppBar(

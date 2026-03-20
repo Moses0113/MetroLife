@@ -133,7 +133,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lastSynced => '上次同步';
 
   @override
-  String get bmiCalculator => 'BMI 計算器';
+  String get bmiCalculator => 'BMI 計數機';
 
   @override
   String get height => '身高';
@@ -566,7 +566,7 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
   String get lastSynced => '上次同步';
 
   @override
-  String get bmiCalculator => 'BMI 計算器';
+  String get bmiCalculator => 'BMI 計數機';
 
   @override
   String get height => '身高';

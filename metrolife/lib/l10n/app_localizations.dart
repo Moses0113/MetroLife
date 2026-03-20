@@ -340,7 +340,7 @@ abstract class AppLocalizations {
   /// No description provided for @bmiCalculator.
   ///
   /// In zh_HK, this message translates to:
-  /// **'BMI 計算器'**
+  /// **'BMI 計數機'**
   String get bmiCalculator;
 
   /// No description provided for @height.
