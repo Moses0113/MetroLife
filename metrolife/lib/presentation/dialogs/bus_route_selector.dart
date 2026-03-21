@@ -25,37 +25,18 @@ class BusRouteSelector extends ConsumerStatefulWidget {
 
 class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
   final _routeCtrl = TextEditingController();
-  List<Map<String, dynamic>> _allRoutes = [];
   List<Map<String, dynamic>> _matchedRoutes = [];
   List<BusStop> _routeStops = [];
   String? _selectedRouteKey;
-  bool _loadingRoutes = true;
   bool _loadingStops = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAllRoutes());
+  void dispose() {
+    _routeCtrl.dispose();
+    super.dispose();
   }
 
-  Future<void> _loadAllRoutes() async {
-    try {
-      final busService = ref.read(busServiceProvider);
-      final routes = await busService.getAllRoutes();
-      if (mounted) {
-        setState(() {
-          _allRoutes = routes;
-          _loadingRoutes = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loadingRoutes = false);
-      }
-    }
-  }
-
-  void _searchRoute(String query) {
+  void _searchRoute(String query, List<Map<String, dynamic>> allRoutes) {
     _selectedRouteKey = null;
     _routeStops = [];
     if (query.isEmpty) {
@@ -63,21 +44,25 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
       return;
     }
     final q = query.toUpperCase().trim();
+
     setState(() {
       _matchedRoutes =
-          _allRoutes
-              .where((r) => (r['route'] as String).toUpperCase().startsWith(q))
-              .toList()
-            ..sort(
-              (a, b) => (a['route'] as String).compareTo(b['route'] as String),
-            );
+          allRoutes.where((r) {
+            final routeVal = r['route']?.toString() ?? '';
+            return routeVal.toUpperCase().startsWith(q);
+          }).toList()..sort((a, b) {
+            final routeA = a['route']?.toString() ?? '';
+            final routeB = b['route']?.toString() ?? '';
+            return routeA.compareTo(routeB);
+          });
     });
   }
 
   Future<void> _onRouteSelected(Map<String, dynamic> route) async {
-    final routeNum = route['route'] as String;
-    final bound = route['bound'] as String;
-    final serviceType = route['service_type'] as int;
+    final routeNum = route['route']?.toString() ?? '';
+    final bound = route['bound']?.toString() ?? 'O';
+    final serviceType =
+        int.tryParse(route['service_type']?.toString() ?? '1') ?? 1;
     final key = '${routeNum}_${bound}_$serviceType';
 
     setState(() {
@@ -99,23 +84,16 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
           _loadingStops = false;
         });
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loadingStops = false);
-      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingStops = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _routeCtrl.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
+    final routesAsync = ref.watch(allRoutesProvider);
 
     return SizedBox(
       height: screenHeight * 0.8,
@@ -146,16 +124,17 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
                 children: [
                   const Icon(Icons.route, color: AppTheme.accentPrimary),
                   const SizedBox(width: AppTheme.spacingSm),
-                  Text(
-                    _selectedRouteKey != null
-                        ? '路綫 ${_selectedRouteKey?.split("_")[0]} — 選擇站點'
-                        : '選擇巴士綫',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      _selectedRouteKey != null
+                          ? '路綫 ${_selectedRouteKey?.split("_")[0]} — 選擇站點'
+                          : '選擇巴士綫',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   if (_selectedRouteKey != null)
                     IconButton(
                       icon: const Icon(Icons.arrow_back),
@@ -173,23 +152,27 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppTheme.spacingMd,
                 ),
-                child: TextField(
-                  controller: _routeCtrl,
-                  decoration: InputDecoration(
-                    hintText: '輸入綫號 (如 1A, 960)...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _routeCtrl.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _routeCtrl.clear();
-                              _searchRoute('');
-                            },
-                          )
-                        : null,
+                child: routesAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (_, __) => const SizedBox(),
+                  data: (allRoutes) => TextField(
+                    controller: _routeCtrl,
+                    decoration: InputDecoration(
+                      hintText: '輸入綫號 (如 1A, 960)...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _routeCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _routeCtrl.clear();
+                                setState(() => _matchedRoutes = []);
+                              },
+                            )
+                          : null,
+                    ),
+                    autofocus: true,
+                    onChanged: (q) => _searchRoute(q, allRoutes),
                   ),
-                  autofocus: true,
-                  onChanged: _searchRoute,
                 ),
               ),
             if (_selectedRouteKey == null)
@@ -198,7 +181,49 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
             Expanded(
               child: _selectedRouteKey != null
                   ? _buildStopsList()
-                  : _buildRouteResults(),
+                  : routesAsync.when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.cloud_off,
+                                size: 48,
+                                color: AppTheme.textTertiary,
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                '無法載入路綫資料',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$err',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    ref.invalidate(allRoutesProvider),
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('重試'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      data: (allRoutes) => _buildRouteResults(allRoutes),
+                    ),
             ),
           ],
         ),
@@ -206,28 +231,11 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
     );
   }
 
-  Widget _buildRouteResults() {
-    if (_loadingRoutes) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_allRoutes.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            '無法載入路綫資料\n請檢查網絡連接',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppTheme.textSecondary),
-          ),
-        ),
-      );
-    }
-
+  Widget _buildRouteResults(List<Map<String, dynamic>> allRoutes) {
     if (_routeCtrl.text.isEmpty) {
-      // Show popular routes when no search
+      // Popular routes
       final popular =
-          _allRoutes
+          allRoutes
               .where(
                 (r) => [
                   '1',
@@ -255,30 +263,46 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
                   '960',
                   '961',
                   '968',
-                ].contains(r['route']),
+                ].contains(r['route']?.toString() ?? ''),
               )
               .toList()
             ..sort(
-              (a, b) => (a['route'] as String).compareTo(b['route'] as String),
+              (a, b) => (a['route']?.toString() ?? '').compareTo(
+                b['route']?.toString() ?? '',
+              ),
             );
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(
+          Padding(
+            padding: const EdgeInsets.only(
               left: AppTheme.spacingMd,
               bottom: AppTheme.spacingSm,
             ),
             child: Text(
-              '熱門路綫',
-              style: TextStyle(
+              '共 ${allRoutes.length} 條路綫 — 請輸入綫號搜尋',
+              style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
                 color: AppTheme.textSecondary,
               ),
             ),
           ),
+          if (popular.isNotEmpty)
+            const Padding(
+              padding: EdgeInsets.only(
+                left: AppTheme.spacingMd,
+                bottom: AppTheme.spacingSm,
+              ),
+              child: Text(
+                '熱門路綫',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(
@@ -309,17 +333,15 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
   }
 
   Widget _buildRouteCard(Map<String, dynamic> route) {
-    final routeNum = route['route'] as String;
-    final bound = route['bound'] as String;
-    final serviceType = route['service_type'] as int;
-    final origTc = route['orig_tc'] as String;
-    final destTc = route['dest_tc'] as String;
-    final key = '${routeNum}_${bound}_$serviceType';
-    final selected = _selectedRouteKey == key;
+    final routeNum = route['route']?.toString() ?? '';
+    final bound = route['bound']?.toString() ?? 'O';
+    final serviceType =
+        int.tryParse(route['service_type']?.toString() ?? '1') ?? 1;
+    final origTc = route['orig_tc']?.toString() ?? '';
+    final destTc = route['dest_tc']?.toString() ?? '';
     final isSpecial = serviceType > 1;
 
     return Card(
-      color: selected ? AppTheme.accentPrimary.withValues(alpha: 0.1) : null,
       child: ListTile(
         leading: Container(
           width: 52,
@@ -375,12 +397,8 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
   }
 
   Widget _buildStopsList() {
-    if (_loadingStops) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_routeStops.isEmpty) {
-      return const Center(child: Text('此路綫暫無站點資料'));
-    }
+    if (_loadingStops) return const Center(child: CircularProgressIndicator());
+    if (_routeStops.isEmpty) return const Center(child: Text('此路綫暫無站點資料'));
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(
