@@ -1,21 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/domain/providers/theme_provider.dart';
 import 'package:metrolife/presentation/pages/main_shell.dart';
+import 'package:metrolife/presentation/pages/welcome_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const ProviderScope(child: MetroLifeApp()));
 }
 
-class MetroLifeApp extends ConsumerWidget {
+class MetroLifeApp extends ConsumerStatefulWidget {
   const MetroLifeApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MetroLifeApp> createState() => _MetroLifeAppState();
+}
+
+class _MetroLifeAppState extends ConsumerState<MetroLifeApp> {
+  bool _loading = true;
+  bool _showWelcome = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasCompleted = prefs.getBool('has_completed_welcome') ?? false;
+    setState(() {
+      _showWelcome = !hasCompleted;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
@@ -32,7 +57,15 @@ class MetroLifeApp extends ConsumerWidget {
       ],
       supportedLocales: const [Locale('zh', 'HK')],
       locale: const Locale('zh', 'HK'),
-      home: const MainShell(),
+      home: _loading
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : _showWelcome
+          ? WelcomePage(
+              onComplete: () {
+                setState(() => _showWelcome = false);
+              },
+            )
+          : const MainShell(),
     );
   }
 }
