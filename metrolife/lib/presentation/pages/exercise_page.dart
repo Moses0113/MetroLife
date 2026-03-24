@@ -262,107 +262,119 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
           ),
           const SizedBox(height: AppTheme.spacingMd),
 
-          // Today's Activity
+          // Today's Steps
           Text(
             l10n.todaysSteps,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppTheme.spacingSm),
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppTheme.spacingMd),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.directions_walk,
-                          color: AppTheme.accentPrimary,
-                        ),
-                        const SizedBox(height: AppTheme.spacingSm),
-                        stepsAsync.when(
-                          loading: () => const Text(
-                            '--',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          error: (_, __) => const Text(
-                            '0',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          data: (steps) => Text(
-                            '$steps',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          l10n.todaysSteps,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.directions_walk,
+                    color: AppTheme.accentPrimary,
+                    size: 32,
                   ),
-                ),
-              ),
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppTheme.spacingMd),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.local_fire_department,
-                          color: AppTheme.warning,
-                        ),
-                        const SizedBox(height: AppTheme.spacingSm),
-                        caloriesAsync.when(
-                          loading: () => const Text(
-                            '--',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          error: (_, __) => const Text(
-                            '0',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          data: (cal) => Text(
-                            cal.toStringAsFixed(0),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  const SizedBox(width: AppTheme.spacingMd),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      stepsAsync.when(
+                        loading: () => const Text(
+                          '--',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          l10n.calories,
+                        error: (_, __) => const Text(
+                          '0',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        data: (steps) => Text(
+                          '$steps',
                           style: const TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Text(
+                        l10n.todaysSteps,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingMd),
+
+          // Today's Calories
+          Text(
+            l10n.calories,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.local_fire_department,
+                    color: AppTheme.warning,
+                    size: 32,
+                  ),
+                  const SizedBox(width: AppTheme.spacingMd),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      caloriesAsync.when(
+                        loading: () => const Text(
+                          '--',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        error: (_, __) => const Text(
+                          '0',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        data: (cal) => Text(
+                          cal.toStringAsFixed(0),
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        l10n.calories,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: AppTheme.spacingMd),
 
@@ -478,7 +490,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
     return Expanded(
       child: Card(
         child: InkWell(
-          onTap: () => ExerciseDialog.show(context),
+          onTap: () => ExerciseDialog.show(context, initialType: type),
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),

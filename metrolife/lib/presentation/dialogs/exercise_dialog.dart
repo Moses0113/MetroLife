@@ -9,23 +9,25 @@ import 'package:metrolife/domain/providers/achievement_provider.dart';
 import 'package:metrolife/presentation/widgets/diligent_rabbit_overlay.dart';
 
 class ExerciseDialog extends ConsumerStatefulWidget {
-  const ExerciseDialog({super.key});
+  const ExerciseDialog({super.key, this.initialType});
+
+  final String? initialType;
 
   @override
   ConsumerState<ExerciseDialog> createState() => _ExerciseDialogState();
 
-  static void show(BuildContext context) {
+  static void show(BuildContext context, {String? initialType}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => const ExerciseDialog(),
+      builder: (ctx) => ExerciseDialog(initialType: initialType),
     );
   }
 }
 
 class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
-  String _type = 'running';
+  late String _type = widget.initialType ?? 'running';
   final _minutesCtrl = TextEditingController();
   final double _weightKg = 70.0;
 

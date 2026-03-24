@@ -25,6 +25,8 @@ class UserProfile {
 }
 
 class UserProfileNotifier extends Notifier<UserProfile> {
+  bool _usernameSet = false;
+
   @override
   UserProfile build() {
     _load();
@@ -33,14 +35,23 @@ class UserProfileNotifier extends Notifier<UserProfile> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    state = UserProfile(
-      username: prefs.getString('username') ?? 'User',
-      heightCm: prefs.getDouble('height_cm') ?? 170,
-      weightKg: prefs.getDouble('weight_kg') ?? 70,
-    );
+    if (!_usernameSet) {
+      state = UserProfile(
+        username: prefs.getString('username') ?? 'User',
+        heightCm: prefs.getDouble('height_cm') ?? 170,
+        weightKg: prefs.getDouble('weight_kg') ?? 70,
+      );
+    } else {
+      state = UserProfile(
+        username: state.username,
+        heightCm: prefs.getDouble('height_cm') ?? 170,
+        weightKg: prefs.getDouble('weight_kg') ?? 70,
+      );
+    }
   }
 
   Future<void> updateUsername(String name) async {
+    _usernameSet = true;
     state = state.copyWith(username: name);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', name);

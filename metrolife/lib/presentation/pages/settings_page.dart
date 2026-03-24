@@ -15,7 +15,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  final _usernameCtrl = TextEditingController(text: 'User');
+  final _usernameCtrl = TextEditingController();
   final _heightCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   final _salaryCtrl = TextEditingController();
@@ -228,12 +228,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       title: Text(username),
       subtitle: const Text('MetroLife 帳戶'),
       trailing: const Icon(Icons.edit),
-      onTap: () => _showUsernameDialog(context),
+      onTap: () => _showUsernameDialog(context, username),
     );
   }
 
-  void _showUsernameDialog(BuildContext context) {
-    final ctrl = TextEditingController(text: _usernameCtrl.text);
+  void _showUsernameDialog(BuildContext context, String currentName) {
+    final ctrl = TextEditingController(text: currentName);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
