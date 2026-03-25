@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:health/health.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/exercise_provider.dart';
@@ -62,31 +63,76 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
   Future<void> _handleHealthSync(WidgetRef ref) async {
     final healthService = ref.read(healthServiceProvider);
 
-    // Request permissions (configure is called internally)
+    // On Android, check Health Connect availability first
+    if (Platform.isAndroid) {
+      final status = await healthService.getHealthConnectStatus();
+      if (status != HealthConnectSdkStatus.sdkAvailable) {
+        await healthService.installHealthConnect();
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('請先安裝 Health Connect')));
+        }
+        return;
+      }
+    }
+
+    // Check existing permissions first
+    final hasPermission = await healthService.hasPermissions();
+    if (hasPermission) {
+      _onHealthConnected(ref);
+      return;
+    }
+
+    // Request permissions
     final granted = await healthService.requestPermissions();
-
     if (granted) {
-      ref.read(healthConnectedProvider.notifier).setConnected(true);
+      _onHealthConnected(ref);
+      return;
+    }
 
-      // Refresh health data
-      ref.invalidate(healthStepsProvider);
-      ref.invalidate(healthCaloriesProvider);
-      ref.invalidate(weeklyStepsProvider);
+    // Permission request returned false — dialog may not have appeared.
+    // Guide user to Health Connect settings to manually grant permissions.
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Health Connect 權限'),
+        content: const Text('無法自動取得權限，請到 Health Connect 設定中手動開啟權限。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              healthService.openHealthConnectSettings();
+            },
+            child: const Text('開啟設定'),
+          ),
+        ],
+      ),
+    );
+  }
 
-      // Try to read weight from health
-      final weight = await healthService.getLatestWeight();
-      if (weight != null && weight > 0) {
+  void _onHealthConnected(WidgetRef ref) {
+    ref.read(healthConnectedProvider.notifier).setConnected(true);
+
+    // Refresh health data
+    ref.invalidate(healthStepsProvider);
+    ref.invalidate(healthCaloriesProvider);
+    ref.invalidate(weeklyStepsProvider);
+
+    // Try to read weight from health
+    ref.read(healthServiceProvider).getLatestWeight().then((weight) {
+      if (weight != null && weight > 0 && mounted) {
         _weightCtrl.text = weight.toStringAsFixed(1);
         ref.read(userProfileProvider.notifier).updateWeight(weight);
         _calculateBmi();
       }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('未能獲得 Health Connect 權限')));
-      }
-    }
+    });
   }
 
   @override

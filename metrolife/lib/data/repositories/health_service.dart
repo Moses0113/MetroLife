@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:health/health.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 class HealthService {
   final Health _health = Health();
@@ -69,7 +70,7 @@ class HealthService {
         _types,
         permissions: permissions,
       );
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
@@ -88,6 +89,18 @@ class HealthService {
   Future<void> revokePermissions() async {
     try {
       await _health.revokePermissions();
+    } catch (_) {}
+  }
+
+  /// Open Health Connect permission settings for this app
+  Future<void> openHealthConnectSettings() async {
+    if (!Platform.isAndroid) return;
+    try {
+      const intent = AndroidIntent(
+        action: 'android.health.connect.action.MANAGE_HEALTH_DATA',
+        arguments: <String, dynamic>{'packageName': 'com.metrolife.metrolife'},
+      );
+      await intent.launch();
     } catch (_) {}
   }
 
