@@ -1,6 +1,7 @@
 # MetroLife - Agent Instructions
 
-MetroLife is a Flutter/Dart mobile app (Hong Kong life manager) using Clean Architecture.
+MetroLife is a Flutter/Dart mobile app (Hong Kong life manager, 香港生活管家) using Clean Architecture.
+Dart SDK ^3.11.0. Localization: zh_HK only.
 
 ## Build & Run Commands
 
@@ -10,7 +11,7 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter gen-l10n
 
-# Full code generation (use after model/provider/schema changes)
+# Full code generation (cleans + regenerates everything)
 bash scripts/build.sh
 
 # Run app
@@ -39,19 +40,30 @@ flutter test test/widget_test.dart              # Run single test file
 flutter test --name "App renders correctly"     # Run single test by name
 ```
 
-Tests use `flutter_test`. Wrap widgets in `ProviderScope` for Riverpod. Use `pumpAndSettle()` for async operations.
+Tests use `flutter_test`. Wrap widgets in `ProviderScope` for Riverpod. Use `pumpAndSettle()` for async widget operations. Test file naming: `test/<name>_test.dart`.
 
 ## Code Generation
 
 After editing any of these, re-run `dart run build_runner build --delete-conflicting-outputs`:
-- Freezed models (`@freezed` classes)
+- Freezed models (`@freezed` classes in `lib/data/models/`)
 - Drift tables (`.drift` files in `lib/data/local/tables/`)
-- Retrofit API clients
-- Riverpod providers using `@riverpod`
+- Retrofit API clients (`@RestApi` in `lib/data/repositories/`)
+- Riverpod providers using `@riverpod` annotation
 - AutoRoute route definitions
-- Injectable DI annotations
+- Injectable DI annotations (`@Injectable`, `@singleton`)
 
-After editing ARB files in `lib/l10n/`, run `flutter gen-l10n`.
+After editing ARB files in `lib/l10n/arb/`, run `flutter gen-l10n`.
+
+## Key Dependencies
+
+State: `flutter_riverpod` 3.x, `riverpod_annotation` 4.x
+Database: `drift` 2.x (SQLite ORM), `drift_flutter`
+Models: `freezed` 3.x, `json_serializable`
+Network: `dio` 5.x, `retrofit` 4.x
+Routing: `auto_route` 10.x
+DI: `injectable` 2.x, `get_it` 8.x
+Maps: `google_maps_flutter`, `geolocator`
+Health: `health` 12.x (HealthKit + Health Connect)
 
 ## Architecture
 
@@ -65,17 +77,18 @@ lib/
   domain/
     providers/   Riverpod providers (all business logic)
   presentation/
-    dialogs/     Bottom sheet forms
+    dialogs/     Bottom sheet forms with static show() methods
     pages/       Screen widgets
     widgets/     Shared reusable widgets
-  l10n/          Localization (zh_HK)
+  l10n/          Localization ARB files + generated AppLocalizations
 ```
 
 ## Code Style
 
 ### Imports
 
-Order: `dart:` → `package:flutter/` → third-party packages → local (package:metrolife/...). Use `package:` paths for all lib/ imports (no relative paths crossing layers).
+Order: `dart:` → `package:flutter/` → third-party packages → local `package:metrolife/...`.
+Use `package:` paths for all lib/ imports — no relative paths crossing layers.
 
 ```dart
 import 'dart:io';
@@ -92,7 +105,7 @@ import 'package:metrolife/domain/providers/todo_provider.dart';
 - Variables/methods: `camelCase` (`getTodaySteps()`)
 - Private members: `_leadingUnderscore` (`_health`, `_configured`)
 - Providers: `camelCase` + `Provider` suffix (`themeModeProvider`, `todoServiceProvider`)
-- Enums/consts: `UPPER_SNAKE_CASE` for library-level constants
+- Enums/library consts: `UPPER_SNAKE_CASE`
 
 ### Widgets
 
@@ -113,7 +126,7 @@ Always use `AppTheme` constants — never hardcode colors/spacing/radii:
 
 ### Localization
 
-Use `AppLocalizations.of(context)` for all user-facing strings. Never hardcopy localized text.
+Use `AppLocalizations.of(context)` for all user-facing strings. Never hardcode localized text.
 
 ### Error Handling
 

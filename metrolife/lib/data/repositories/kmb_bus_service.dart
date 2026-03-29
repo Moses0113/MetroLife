@@ -146,48 +146,62 @@ class KmbBusService {
     }
   }
 
-  /// 獲取指定路綫的站點列表
+  /// 獲取指定路綫的站點列表 (帶重試，最多 20 次)
   Future<List<BusStop>> getRouteStops(
     String route,
     String bound,
     int serviceType,
   ) async {
-    final response = await _dio.get(ApiConstants.kmbRouteStop);
-    final decoded = _decodeResponse(response.data);
-    final data = _toMap(decoded);
-    final allRouteStops = (data['data'] as List?) ?? [];
+    const maxRetries = 20;
 
-    // Filter for this route
-    final matchingStops =
-        allRouteStops.where((rs) {
-          final m = _toMap(rs);
-          return m['route']?.toString() == route &&
-              m['bound']?.toString() == bound &&
-              int.tryParse(m['service_type']?.toString() ?? '1') == serviceType;
-        }).toList()..sort((a, b) {
-          final ma = _toMap(a);
-          final mb = _toMap(b);
-          return (int.tryParse(ma['seq']?.toString() ?? '0') ?? 0).compareTo(
-            int.tryParse(mb['seq']?.toString() ?? '0') ?? 0,
-          );
-        });
+    for (var attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        final response = await _dio.get(ApiConstants.kmbRouteStop);
+        final decoded = _decodeResponse(response.data);
+        final data = _toMap(decoded);
+        final allRouteStops = (data['data'] as List?) ?? [];
 
-    // Get all stops to resolve names
-    final allStops = await getAllStops();
-    final stopMap = {for (var s in allStops) s.stop: s};
+        // Filter for this route
+        final matchingStops =
+            allRouteStops.where((rs) {
+              final m = _toMap(rs);
+              return m['route']?.toString() == route &&
+                  m['bound']?.toString() == bound &&
+                  int.tryParse(m['service_type']?.toString() ?? '1') ==
+                      serviceType;
+            }).toList()..sort((a, b) {
+              final ma = _toMap(a);
+              final mb = _toMap(b);
+              return (int.tryParse(ma['seq']?.toString() ?? '0') ?? 0)
+                  .compareTo(int.tryParse(mb['seq']?.toString() ?? '0') ?? 0);
+            });
 
-    // Build ordered list
-    final List<BusStop> result = [];
-    for (final rs in matchingStops) {
-      final m = _toMap(rs);
-      final stopId = m['stop'] as String? ?? '';
-      final stop = stopMap[stopId];
-      if (stop != null) {
-        result.add(stop);
+        if (matchingStops.isNotEmpty) {
+          // Get all stops to resolve names
+          final allStops = await getAllStops();
+          final stopMap = {for (var s in allStops) s.stop: s};
+
+          // Build ordered list
+          final List<BusStop> result = [];
+          for (final rs in matchingStops) {
+            final m = _toMap(rs);
+            final stopId = m['stop'] as String? ?? '';
+            final stop = stopMap[stopId];
+            if (stop != null) {
+              result.add(stop);
+            }
+          }
+
+          if (result.isNotEmpty) return result;
+        }
+      } catch (_) {}
+
+      if (attempt < maxRetries) {
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
 
-    return result;
+    return [];
   }
 
   double _haversine(double lat1, double lon1, double lat2, double lon2) {
