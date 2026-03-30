@@ -11,7 +11,7 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter gen-l10n
 
-# Full code generation (cleans + regenerates everything)
+# Full code generation
 bash scripts/build.sh
 
 # Run app
@@ -19,7 +19,6 @@ flutter run
 
 # Build
 flutter build apk --debug
-flutter build apk --release
 flutter build ios
 ```
 
@@ -56,14 +55,14 @@ After editing ARB files in `lib/l10n/arb/`, run `flutter gen-l10n`.
 
 ## Key Dependencies
 
-State: `flutter_riverpod` 3.x, `riverpod_annotation` 4.x
-Database: `drift` 2.x (SQLite ORM), `drift_flutter`
-Models: `freezed` 3.x, `json_serializable`
-Network: `dio` 5.x, `retrofit` 4.x
-Routing: `auto_route` 10.x
-DI: `injectable` 2.x, `get_it` 8.x
-Maps: `google_maps_flutter`, `geolocator`
-Health: `health` 12.x (HealthKit + Health Connect)
+- State: `flutter_riverpod` 3.x, `riverpod_annotation` 4.x
+- Database: `drift` 2.x (SQLite ORM), `drift_flutter`
+- Models: `freezed` 3.x, `json_serializable`
+- Network: `dio` 5.x, `retrofit` 4.x
+- Routing: `auto_route` 10.x
+- DI: `injectable` 2.x, `get_it` 8.x
+- Maps: `google_maps_flutter`, `geolocator`
+- Health: `health` 12.x (HealthKit + Health Connect)
 
 ## Architecture
 
@@ -87,8 +86,7 @@ lib/
 
 ### Imports
 
-Order: `dart:` → `package:flutter/` → third-party packages → local `package:metrolife/...`.
-Use `package:` paths for all lib/ imports — no relative paths crossing layers.
+Order: `dart:` → `package:flutter/` → third-party → local `package:metrolife/...`. Use `package:` paths for all lib/ imports — no relative paths crossing layers.
 
 ```dart
 import 'dart:io';
@@ -109,13 +107,23 @@ import 'package:metrolife/domain/providers/todo_provider.dart';
 
 ### Widgets
 
-Use `super.key` constructor pattern. Use `ConsumerWidget` for Riverpod access, `ConsumerStatefulWidget` for stateful + Riverpod. Provide static `show()` methods for dialogs/bottom sheets.
+Use `super.key` constructor pattern. Use `ConsumerWidget` for Riverpod access, `ConsumerStatefulWidget` for stateful + Riverpod. Always provide a `static void show()` method for dialogs/bottom sheets:
 
 ```dart
-class MyWidget extends ConsumerWidget {
-  const MyWidget({super.key});
+class AddTodoDialog extends ConsumerStatefulWidget {
+  const AddTodoDialog({super.key, this.existing});
+  final TodoRow? existing;
   @override
-  Widget build(BuildContext context, WidgetRef ref) { ... }
+  ConsumerState<AddTodoDialog> createState() => _AddTodoDialogState();
+
+  static void show(BuildContext context, {TodoRow? existing}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AddTodoDialog(existing: existing),
+    );
+  }
 }
 ```
 
@@ -127,6 +135,23 @@ Always use `AppTheme` constants — never hardcode colors/spacing/radii:
 ### Localization
 
 Use `AppLocalizations.of(context)` for all user-facing strings. Never hardcode localized text.
+
+### Freezed Models
+
+Use `@Default()` for optional fields, `abstract class` with `with _$ClassName` mixin, and include `fromJson` factory:
+
+```dart
+@freezed
+abstract class ForecastDay with _$ForecastDay {
+  const factory ForecastDay({
+    @Default('') String forecastDate,
+    @Default(0) int forecastMaxtemp,
+  }) = _ForecastDay;
+
+  factory ForecastDay.fromJson(Map<String, dynamic> json) =>
+      _$ForecastDayFromJson(json);
+}
+```
 
 ### Error Handling
 
@@ -150,4 +175,4 @@ Use private constructors for utility classes: `AppConstants._()`, `AppDateUtils.
 
 ## AI Assistant Rules
 
-No Cursor rules, Copilot instructions, or other AI config files exist in this repo. Follow this AGENTS.md as the authoritative style guide.
+No Cursor rules (.cursor/rules/, .cursorrules) or Copilot instructions (.github/copilot-instructions.md) exist in this repo. Follow this AGENTS.md as the authoritative style guide.

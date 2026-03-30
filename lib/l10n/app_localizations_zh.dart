@@ -243,6 +243,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get exportData => '匯出資料';
 
   @override
+  String get importData => '匯入資料';
+
+  @override
   String get clearAllData => '清除所有資料';
 
   @override
@@ -674,6 +677,9 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
 
   @override
   String get exportData => '匯出資料';
+
+  @override
+  String get importData => '匯入資料';
 
   @override
   String get clearAllData => '清除所有資料';

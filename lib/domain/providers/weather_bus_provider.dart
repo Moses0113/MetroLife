@@ -82,13 +82,5 @@ final allRoutesProvider = FutureProvider<List<Map<String, dynamic>>>((
   ref,
 ) async {
   final service = ref.watch(busServiceProvider);
-  print('[Provider] allRoutesProvider: starting fetch');
-  try {
-    final routes = await service.getAllRoutes();
-    print('[Provider] allRoutesProvider: got ${routes.length} routes');
-    return routes;
-  } catch (e, st) {
-    print('[Provider] allRoutesProvider ERROR: $e\n$st');
-    rethrow;
-  }
+  return service.getAllRoutes();
 });

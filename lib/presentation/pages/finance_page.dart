@@ -10,6 +10,7 @@ import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/transaction_provider.dart';
 import 'package:metrolife/domain/providers/category_provider.dart';
 import 'package:metrolife/presentation/dialogs/add_transaction_dialog.dart';
+import 'package:metrolife/presentation/dialogs/balance_calendar_dialog.dart';
 
 class FinancePage extends ConsumerStatefulWidget {
   const FinancePage({super.key});
@@ -36,6 +37,11 @@ class _FinancePageState extends ConsumerState<FinancePage> {
       appBar: AppBar(
         title: Text(l10n.finance),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => BalanceCalendarDialog.show(context),
+            tooltip: '結餘日曆',
+          ),
           IconButton(icon: const Icon(Icons.bar_chart), onPressed: () {}),
         ],
       ),

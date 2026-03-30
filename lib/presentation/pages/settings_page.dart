@@ -1,11 +1,15 @@
 /// 設定頁 - 完整實現 (prd.md §3.5)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
+import 'package:metrolife/domain/providers/database_provider.dart';
 import 'package:metrolife/domain/providers/theme_provider.dart';
 import 'package:metrolife/domain/providers/focus_timer_provider.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
+import 'package:metrolife/domain/providers/export_provider.dart';
+import 'package:metrolife/presentation/pages/main_shell.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -113,6 +117,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               min: 1,
               max: 31,
             ),
+            _buildPickerTile(
+              context,
+              icon: Icons.balance,
+              title: '結算日',
+              value: '每月 ${profile.settlementDay} 日',
+              onChanged: (v) =>
+                  ref.read(userProfileProvider.notifier).updateSettlementDay(v),
+              min: 1,
+              max: 28,
+            ),
           ]),
 
           // Focus
@@ -186,7 +200,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               context,
               icon: Icons.download,
               title: l10n.exportData,
-              onTap: () {},
+              onTap: () => _exportData(context),
+            ),
+            _buildNavTile(
+              context,
+              icon: Icons.upload,
+              title: l10n.importData,
+              onTap: () => _importData(context),
             ),
             _buildNavTile(
               context,
@@ -443,11 +463,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showClearDataConfirm(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('清除所有資料'),
-        content: const Text('確定要清除所有資料嗎？此操作無法復原。'),
+        title: Text(l10n.clearAllData),
+        content: Text(l10n.clearAllDataConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -455,14 +476,175 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              // TODO: Clear all data
+              await _clearAllData(context);
             },
             child: const Text('確定刪除', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _clearAllData(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final db = ref.read(databaseProvider);
+
+    await db.clearAllData();
+    await prefs.clear();
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const _ResetWelcomePage()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _exportData(BuildContext context) async {
+    final exportService = ref.read(exportServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+
+    messenger.showSnackBar(const SnackBar(content: Text('正在匯出資料...')));
+
+    try {
+      await exportService.shareExport();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('匯出失敗: $e')));
+    }
+  }
+
+  Future<void> _importData(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('匯入資料'),
+        content: const Text('匯入會將資料合併到現有資料中，同 ID 的記錄會被覆蓋。確定繼續嗎？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('確定'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    final exportService = ref.read(exportServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+
+    messenger.showSnackBar(const SnackBar(content: Text('正在匯入資料...')));
+
+    try {
+      final count = await exportService.importAllData();
+      if (!context.mounted) return;
+      if (count > 0) {
+        messenger.showSnackBar(SnackBar(content: Text('已匯入 $count 筆記錄')));
+      } else {
+        messenger.showSnackBar(const SnackBar(content: Text('未選擇檔案')));
+      }
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('匯入失敗: $e')));
+    }
+  }
+}
+
+class _ResetWelcomePage extends ConsumerStatefulWidget {
+  const _ResetWelcomePage();
+
+  @override
+  ConsumerState<_ResetWelcomePage> createState() => _ResetWelcomePageState();
+}
+
+class _ResetWelcomePageState extends ConsumerState<_ResetWelcomePage> {
+  final _nameCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.bgPrimary,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
+              const Text(
+                'MetroLife',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.accentPrimary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingSm),
+              const Text(
+                '香港生活管家',
+                style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              ),
+              const SizedBox(height: AppTheme.spacingXl),
+              TextField(
+                controller: _nameCtrl,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+                decoration: const InputDecoration(
+                  hintText: '輸入你的名稱',
+                  hintStyle: TextStyle(fontSize: 16),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: AppTheme.spacingXl),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onStart,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    '開始使用',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const Spacer(flex: 3),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onStart() async {
+    final name = _nameCtrl.text.trim();
+    if (name.isEmpty) return;
+
+    await ref.read(userProfileProvider.notifier).updateUsername(name);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_welcome', true);
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const MainShell()),
+      (route) => false,
     );
   }
 }

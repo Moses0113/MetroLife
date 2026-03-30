@@ -553,6 +553,12 @@ abstract class AppLocalizations {
   /// **'匯出資料'**
   String get exportData;
 
+  /// No description provided for @importData.
+  ///
+  /// In zh_HK, this message translates to:
+  /// **'匯入資料'**
+  String get importData;
+
   /// No description provided for @clearAllData.
   ///
   /// In zh_HK, this message translates to:

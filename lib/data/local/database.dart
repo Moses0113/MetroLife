@@ -131,4 +131,18 @@ class AppDatabase extends _$AppDatabase {
       await into(categories).insert(cat);
     }
   }
+
+  Future<void> clearAllData() async {
+    await transaction(() async {
+      await delete(healthSyncLogs).go();
+      await delete(rabbitAchievements).go();
+      await delete(exerciseRecords).go();
+      await delete(diaryEntries).go();
+      await delete(transactions).go();
+      await delete(todos).go();
+      await delete(userProfile).go();
+      await delete(categories).go();
+    });
+    await _seedDefaultCategories();
+  }
 }

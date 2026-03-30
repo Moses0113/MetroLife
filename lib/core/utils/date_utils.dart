@@ -12,12 +12,15 @@ class AppDateUtils {
   );
   static final DateFormat _dateShort = DateFormat(AppConstants.dateFormatDdMm);
   static final DateFormat _timeFormat = DateFormat(AppConstants.timeFormatHhMm);
+  static final DateFormat _yyMmFormat = DateFormat('yy/MM');
 
   static String formatDdMmYyyy(DateTime date) => _dateFormat.format(date);
 
   static String formatDdMm(DateTime date) => _dateShort.format(date);
 
   static String formatTime(DateTime time) => _timeFormat.format(time);
+
+  static String formatYyMm(DateTime date) => _yyMmFormat.format(date);
 
   static String formatDateTime(DateTime dt) {
     return '${formatDdMmYyyy(dt)} ${formatTime(dt)}';
