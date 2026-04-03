@@ -21,6 +21,7 @@ class FinancePage extends ConsumerStatefulWidget {
 
 class _FinancePageState extends ConsumerState<FinancePage> {
   DateTime _selectedMonth = DateTime.now();
+  bool _showRadialChart = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,12 @@ class _FinancePageState extends ConsumerState<FinancePage> {
             onPressed: () => BalanceCalendarDialog.show(context),
             tooltip: '結餘日曆',
           ),
-          IconButton(icon: const Icon(Icons.bar_chart), onPressed: () {}),
+          IconButton(
+            icon: Icon(_showRadialChart ? Icons.pie_chart : Icons.bar_chart),
+            onPressed: () =>
+                setState(() => _showRadialChart = !_showRadialChart),
+            tooltip: _showRadialChart ? '切換圓形圖' : '切換收入支出棒形圖',
+          ),
         ],
       ),
       body: ListView(
@@ -61,32 +67,45 @@ class _FinancePageState extends ConsumerState<FinancePage> {
           ),
           const SizedBox(height: AppTheme.spacingMd),
 
-          // Spending Breakdown Pie Chart
+          // Chart Section
           Card(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.spacingLg),
               child: Column(
                 children: [
                   Text(
-                    l10n.spendingBreakdown,
+                    _showRadialChart ? '收入支出比' : l10n.spendingBreakdown,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: AppTheme.spacingLg),
-                  breakdownAsync.when(
-                    loading: () => const SizedBox(
-                      height: 150,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (_, __) => const SizedBox(
-                      height: 150,
-                      child: Center(child: Text('無法載入圖表')),
-                    ),
-                    data: (breakdown) =>
-                        _buildPieChart(breakdown, categoriesAsync),
-                  ),
+                  _showRadialChart
+                      ? summaryAsync.when(
+                          loading: () => const SizedBox(
+                            height: 180,
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (_, __) => const SizedBox(
+                            height: 180,
+                            child: Center(child: Text('無法載入圖表')),
+                          ),
+                          data: (summary) =>
+                              _buildRadialBarChart(summary, isDark),
+                        )
+                      : breakdownAsync.when(
+                          loading: () => const SizedBox(
+                            height: 150,
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (_, __) => const SizedBox(
+                            height: 150,
+                            child: Center(child: Text('無法載入圖表')),
+                          ),
+                          data: (breakdown) =>
+                              _buildPieChart(breakdown, categoriesAsync),
+                        ),
                 ],
               ),
             ),
@@ -336,6 +355,118 @@ class _FinancePageState extends ConsumerState<FinancePage> {
     );
   }
 
+  Widget _buildRadialBarChart(MonthlySummary summary, bool isDark) {
+    final total = summary.income + summary.expense;
+    final incomeRatio = total > 0 ? summary.income / total : 0.0;
+    final expenseRatio = total > 0 ? summary.expense / total : 0.0;
+
+    if (total == 0) {
+      return SizedBox(
+        height: 180,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bar_chart,
+              size: 60,
+              color: AppTheme.textTertiary.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: AppTheme.spacingSm),
+            const Text(
+              '暫無收支數據',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 180,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 180,
+            height: 180,
+            child: CustomPaint(
+              painter: _RadialBarPainter(
+                incomeRatio: incomeRatio,
+                expenseRatio: expenseRatio,
+                incomeColor: AppTheme.success,
+                expenseColor: AppTheme.danger,
+                isDark: isDark,
+              ),
+              child: Center(
+                child: Text(
+                  '${(incomeRatio * 100).toStringAsFixed(0)}:${(expenseRatio * 100).toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTheme.spacingMd),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildRadialLegendItem(
+                '收入',
+                AppTheme.success,
+                incomeRatio,
+                CurrencyUtils.formatGbp(summary.income),
+              ),
+              const SizedBox(height: AppTheme.spacingSm),
+              _buildRadialLegendItem(
+                '支出',
+                AppTheme.danger,
+                expenseRatio,
+                CurrencyUtils.formatGbp(summary.expense),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRadialLegendItem(
+    String label,
+    Color color,
+    double ratio,
+    String amount,
+  ) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              '${(ratio * 100).toStringAsFixed(0)}%  $amount',
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildTransactionItem(
     BuildContext context,
     WidgetRef ref,
@@ -435,4 +566,83 @@ class _FinancePageState extends ConsumerState<FinancePage> {
       ),
     );
   }
+}
+
+class _RadialBarPainter extends CustomPainter {
+  final double incomeRatio;
+  final double expenseRatio;
+  final Color incomeColor;
+  final Color expenseColor;
+  final bool isDark;
+
+  _RadialBarPainter({
+    required this.incomeRatio,
+    required this.expenseRatio,
+    required this.incomeColor,
+    required this.expenseColor,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    const strokeWidth = 22.0;
+    final radius = size.width / 2 - strokeWidth;
+
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.08)
+          : Colors.black.withValues(alpha: 0.06);
+
+    // Background ring
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -3.14159 / 2,
+      3.14159 * 2,
+      false,
+      bgPaint,
+    );
+
+    const startAngle = -3.14159 / 2;
+    final sweepIncome = 3.14159 * 2 * incomeRatio;
+    final sweepExpense = 3.14159 * 2 * expenseRatio;
+
+    // Income arc (green)
+    if (incomeRatio > 0) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepIncome,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = incomeRatio == 1.0 ? StrokeCap.round : StrokeCap.butt
+          ..color = incomeColor,
+      );
+    }
+
+    // Expense arc (red) follows income
+    if (expenseRatio > 0) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle + sweepIncome,
+        sweepExpense,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = expenseRatio == 1.0 ? StrokeCap.round : StrokeCap.butt
+          ..color = expenseColor,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RadialBarPainter oldDelegate) =>
+      oldDelegate.incomeRatio != incomeRatio ||
+      oldDelegate.expenseRatio != expenseRatio ||
+      oldDelegate.isDark != isDark;
 }

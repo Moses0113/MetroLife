@@ -154,7 +154,7 @@ abstract class AppLocalizations {
   /// No description provided for @goodEvening.
   ///
   /// In zh_HK, this message translates to:
-  /// **'晚上好'**
+  /// **'晚安'**
   String get goodEvening;
 
   /// No description provided for @view9DayForecast.

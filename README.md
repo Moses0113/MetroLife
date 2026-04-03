@@ -1,4 +1,4 @@
-# MetroLife - 香港生活管家
+# MetroLife
 
 A Hong Kong-focused life management app built with Flutter. MetroLife combines weather, transport, finance tracking, daily planning, exercise logging, and productivity tools into a single offline-first mobile application.
 

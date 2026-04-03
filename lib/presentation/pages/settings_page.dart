@@ -23,6 +23,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final _heightCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   final _salaryCtrl = TextEditingController();
+  final _salaryDayCtrl = TextEditingController();
+  final _settlementDayCtrl = TextEditingController();
   final _focusMinCtrl = TextEditingController();
   final _breakMinCtrl = TextEditingController();
   int _salaryDay = 1;
@@ -36,6 +38,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _heightCtrl.dispose();
     _weightCtrl.dispose();
     _salaryCtrl.dispose();
+    _salaryDayCtrl.dispose();
+    _settlementDayCtrl.dispose();
     _focusMinCtrl.dispose();
     _breakMinCtrl.dispose();
     super.dispose();
@@ -108,24 +112,34 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               controller: _salaryCtrl,
               prefix: '\$',
             ),
-            _buildPickerTile(
+            _buildInputTile(
               context,
               icon: Icons.calendar_today,
-              title: l10n.salaryDay,
-              value: '每月 ${_salaryDay} 日',
-              onChanged: (v) => setState(() => _salaryDay = v),
-              min: 1,
-              max: 31,
+              label: l10n.salaryDay,
+              controller: _salaryDayCtrl..text = _salaryDay.toString(),
+              suffix: '日',
+              onChanged: (v) {
+                final val = int.tryParse(v);
+                if (val != null && val >= 1 && val <= 31) {
+                  setState(() => _salaryDay = val);
+                }
+              },
             ),
-            _buildPickerTile(
+            _buildInputTile(
               context,
               icon: Icons.balance,
-              title: '結算日',
-              value: '每月 ${profile.settlementDay} 日',
-              onChanged: (v) =>
-                  ref.read(userProfileProvider.notifier).updateSettlementDay(v),
-              min: 1,
-              max: 28,
+              label: '結算日',
+              controller: _settlementDayCtrl
+                ..text = profile.settlementDay.toString(),
+              suffix: '日',
+              onChanged: (v) {
+                final val = int.tryParse(v);
+                if (val != null && val >= 1 && val <= 28) {
+                  ref
+                      .read(userProfileProvider.notifier)
+                      .updateSettlementDay(val);
+                }
+              },
             ),
           ]),
 
@@ -285,7 +299,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
     );
-    ctrl.dispose();
   }
 
   Widget _buildSection(
@@ -347,24 +360,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildPickerTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String value,
-    required ValueChanged<int> onChanged,
-    required int min,
-    required int max,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.accentPrimary),
-      title: Text(title),
-      subtitle: Text(value),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => _showNumberPicker(context, title, min, max, onChanged),
-    );
-  }
-
   Widget _buildToggleTile(
     BuildContext context, {
     required IconData icon,
@@ -403,62 +398,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       subtitle: subtitle != null ? Text(subtitle) : null,
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
-    );
-  }
-
-  void _showNumberPicker(
-    BuildContext context,
-    String title,
-    int min,
-    int max,
-    ValueChanged<int> onChanged,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox(
-          height: 300,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppTheme.spacingMd),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListWheelScrollView.useDelegate(
-                  itemExtent: 50,
-                  onSelectedItemChanged: onChanged,
-                  childDelegate: ListWheelChildBuilderDelegate(
-                    builder: (context, index) {
-                      final value = min + index;
-                      if (value > max) return null;
-                      return Center(
-                        child: Text(
-                          '$value',
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(AppTheme.spacingMd),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('確定'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 

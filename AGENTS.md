@@ -11,7 +11,7 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter gen-l10n
 
-# Full code generation
+# Full code generation (clean + regenerate everything)
 bash scripts/build.sh
 
 # Run app
@@ -29,7 +29,7 @@ dart analyze              # Static analysis (MUST pass before commit)
 dart fix --apply          # Auto-fix lint issues
 ```
 
-Lint rules in `analysis_options.yaml`: `prefer_const_constructors`, `prefer_const_declarations`, `avoid_print`, `prefer_single_quotes`. Suppress `invalid_annotation_target` for code gen annotations.
+Lint rules (`analysis_options.yaml`): `prefer_const_constructors`, `prefer_const_declarations`, `avoid_print`, `prefer_single_quotes`. Suppress `invalid_annotation_target` for code gen annotations.
 
 ## Testing
 
@@ -39,30 +39,25 @@ flutter test test/widget_test.dart              # Run single test file
 flutter test --name "App renders correctly"     # Run single test by name
 ```
 
-Tests use `flutter_test`. Wrap widgets in `ProviderScope` for Riverpod. Use `pumpAndSettle()` for async widget operations. Test file naming: `test/<name>_test.dart`.
+Tests use `flutter_test`. Wrap widgets in `ProviderScope` for Riverpod. Use `pumpAndSettle()` for async operations. Test file naming: `test/<name>_test.dart`.
 
 ## Code Generation
 
 After editing any of these, re-run `dart run build_runner build --delete-conflicting-outputs`:
-- Freezed models (`@freezed` classes in `lib/data/models/`)
-- Drift tables (`.drift` files in `lib/data/local/tables/`)
+- Freezed models (`@freezed` in `lib/data/models/`)
+- Drift tables (`.drift` in `lib/data/local/tables/`)
 - Retrofit API clients (`@RestApi` in `lib/data/repositories/`)
-- Riverpod providers using `@riverpod` annotation
-- AutoRoute route definitions
-- Injectable DI annotations (`@Injectable`, `@singleton`)
+- Riverpod providers (`@riverpod` annotation)
+- AutoRoute route definitions, Injectable DI (`@Injectable`, `@singleton`)
 
 After editing ARB files in `lib/l10n/arb/`, run `flutter gen-l10n`.
 
 ## Key Dependencies
 
-- State: `flutter_riverpod` 3.x, `riverpod_annotation` 4.x
-- Database: `drift` 2.x (SQLite ORM), `drift_flutter`
-- Models: `freezed` 3.x, `json_serializable`
-- Network: `dio` 5.x, `retrofit` 4.x
-- Routing: `auto_route` 10.x
-- DI: `injectable` 2.x, `get_it` 8.x
-- Maps: `google_maps_flutter`, `geolocator`
-- Health: `health` 12.x (HealthKit + Health Connect)
+State: `flutter_riverpod` 3.x, `riverpod_annotation` 4.x. Database: `drift` 2.x, `drift_flutter`.
+Models: `freezed` 3.x, `json_serializable`. Network: `dio` 5.x, `retrofit` 4.x.
+Routing: `auto_route` 10.x. DI: `injectable` 2.x, `get_it` 8.x.
+Maps: `google_maps_flutter`, `geolocator`. Health: `health` 12.x.
 
 ## Architecture
 
@@ -107,7 +102,7 @@ import 'package:metrolife/domain/providers/todo_provider.dart';
 
 ### Widgets
 
-Use `super.key` constructor pattern. Use `ConsumerWidget` for Riverpod access, `ConsumerStatefulWidget` for stateful + Riverpod. Always provide a `static void show()` method for dialogs/bottom sheets:
+Use `super.key` constructor. Use `ConsumerWidget` for Riverpod, `ConsumerStatefulWidget` for stateful + Riverpod. Always provide a `static void show()` for dialogs/bottom sheets:
 
 ```dart
 class AddTodoDialog extends ConsumerStatefulWidget {
@@ -167,7 +162,7 @@ try {
 
 ### Database
 
-Drift tables are defined in `.drift` files under `lib/data/local/tables/`. Use `TodosCompanion` pattern for inserts/updates. Providers expose `StreamProvider` for reactive queries.
+Drift tables defined in `.drift` files under `lib/data/local/tables/`. Use `TodosCompanion` pattern for inserts/updates. Providers expose `StreamProvider` for reactive queries.
 
 ### Static Utilities
 

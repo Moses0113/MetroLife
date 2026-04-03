@@ -110,7 +110,7 @@ class FocusTimerPage extends ConsumerWidget {
             else if (timerData.state == TimerState.paused)
               _buildResumeButton(notifier)
             else
-              _buildStartButton(notifier),
+              _buildStartButton(notifier, timerData.isBreak),
 
             const SizedBox(height: AppTheme.spacingMd),
 
@@ -154,7 +154,7 @@ class FocusTimerPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStartButton(FocusTimerNotifier notifier) {
+  Widget _buildStartButton(FocusTimerNotifier notifier, bool isBreak) {
     return GestureDetector(
       onTap: notifier.start,
       child: Container(
@@ -167,14 +167,14 @@ class FocusTimerPage extends ConsumerWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusButton),
           boxShadow: AppTheme.shadowGlow,
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.play_arrow, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              '開始專注',
-              style: TextStyle(
+              isBreak ? '開始休息' : '開始專注',
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

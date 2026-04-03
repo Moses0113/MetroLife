@@ -35,7 +35,7 @@ class HomePage extends ConsumerWidget {
         children: [
           // Greeting (prd.md §3.1)
           Text(
-            '${AppDateUtils.greeting()}, ${profile.username}',
+            '${AppDateUtils.greeting()} ${profile.username}',
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           Text(

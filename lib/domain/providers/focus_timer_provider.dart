@@ -88,7 +88,11 @@ class FocusTimerNotifier extends Notifier<FocusTimerData> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state.remainingSeconds <= 0) {
         timer.cancel();
-        state = state.copyWith(state: TimerState.idle);
+        if (!state.isBreak) {
+          switchToBreak();
+        } else {
+          switchToFocus();
+        }
         return;
       }
       state = state.copyWith(remainingSeconds: state.remainingSeconds - 1);

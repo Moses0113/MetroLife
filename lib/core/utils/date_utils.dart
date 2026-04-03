@@ -35,7 +35,7 @@ class AppDateUtils {
         hour < AppConstants.eveningStartHour) {
       return '午安';
     } else {
-      return '晚上好';
+      return '晚安';
     }
   }
 

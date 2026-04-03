@@ -36,7 +36,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get goodAfternoon => '午安';
 
   @override
-  String get goodEvening => '晚上好';
+  String get goodEvening => '晚安';
 
   @override
   String get view9DayForecast => '查看9天天氣預報';
@@ -472,7 +472,7 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
   String get goodAfternoon => '午安';
 
   @override
-  String get goodEvening => '晚上好';
+  String get goodEvening => '晚安';
 
   @override
   String get view9DayForecast => '查看9天天氣預報';
