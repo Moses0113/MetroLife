@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:health/health.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/exercise_provider.dart';
@@ -63,8 +64,23 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
   Future<void> _handleHealthSync(WidgetRef ref) async {
     final healthService = ref.read(healthServiceProvider);
 
-    // On Android, check Health Connect availability first
+    // On Android, request ACTIVITY_RECOGNITION permission first (required for steps)
     if (Platform.isAndroid) {
+      final activityStatus = await Permission.activityRecognition.status;
+      if (activityStatus.isDenied) {
+        final result = await Permission.activityRecognition.request();
+        if (result.isPermanentlyDenied) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('需要 ACTIVITY_RECOGNITION 權限才能讀取步數，請到設定開啟'),
+            ),
+          );
+          return;
+        }
+      }
+
+      // Check Health Connect availability
       final status = await healthService.getHealthConnectStatus();
       if (status != HealthConnectSdkStatus.sdkAvailable) {
         await healthService.installHealthConnect();

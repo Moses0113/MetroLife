@@ -13,6 +13,9 @@
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.WRITE_ACTIVE_CALORIES_BURNED"/>
 
+    <!-- Activity Recognition for steps -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+
     <!-- 定位 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -59,6 +62,18 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
+
+        <!-- Health Connect permission usage activity -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -72,6 +87,10 @@
         </intent>
         <!-- Health Connect package query -->
         <package android:name="com.google.android.apps.healthdata" />
+        <!-- Health Connect permissions rationale -->
+        <intent>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+        </intent>
         <!-- Health Connect settings -->
         <intent>
             <action android:name="android.health.connect.action.MANAGE_HEALTH_DATA"/>
