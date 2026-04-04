@@ -9,6 +9,7 @@ import 'package:metrolife/domain/providers/theme_provider.dart';
 import 'package:metrolife/domain/providers/focus_timer_provider.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/domain/providers/export_provider.dart';
+import 'package:metrolife/domain/providers/transaction_provider.dart';
 import 'package:metrolife/presentation/pages/main_shell.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -27,7 +28,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final _settlementDayCtrl = TextEditingController();
   final _focusMinCtrl = TextEditingController();
   final _breakMinCtrl = TextEditingController();
-  int _salaryDay = 1;
   int _focusMin = 25;
   int _breakMin = 5;
   bool _healthSyncEnabled = false;
@@ -109,19 +109,42 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               context,
               icon: Icons.attach_money,
               label: l10n.monthlySalary,
-              controller: _salaryCtrl,
+              controller: _salaryCtrl
+                ..text = profile.monthlySalary > 0
+                    ? profile.monthlySalary.toStringAsFixed(0)
+                    : '',
               prefix: '\$',
+              onChanged: (v) {
+                final val = double.tryParse(v);
+                if (val != null && val > 0) {
+                  ref
+                      .read(userProfileProvider.notifier)
+                      .updateMonthlySalary(val);
+                  ref
+                      .read(transactionServiceProvider)
+                      .checkAutoSalary(
+                        salaryDay: profile.salaryDay,
+                        monthlySalary: val,
+                      );
+                }
+              },
             ),
             _buildInputTile(
               context,
               icon: Icons.calendar_today,
               label: l10n.salaryDay,
-              controller: _salaryDayCtrl..text = _salaryDay.toString(),
+              controller: _salaryDayCtrl..text = profile.salaryDay.toString(),
               suffix: '日',
               onChanged: (v) {
                 final val = int.tryParse(v);
                 if (val != null && val >= 1 && val <= 31) {
-                  setState(() => _salaryDay = val);
+                  ref.read(userProfileProvider.notifier).updateSalaryDay(val);
+                  ref
+                      .read(transactionServiceProvider)
+                      .checkAutoSalary(
+                        salaryDay: val,
+                        monthlySalary: profile.monthlySalary,
+                      );
                 }
               },
             ),
@@ -134,7 +157,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               suffix: '日',
               onChanged: (v) {
                 final val = int.tryParse(v);
-                if (val != null && val >= 1 && val <= 28) {
+                if (val != null && val >= 1 && val <= 31) {
                   ref
                       .read(userProfileProvider.notifier)
                       .updateSettlementDay(val);

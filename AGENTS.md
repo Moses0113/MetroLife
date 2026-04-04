@@ -29,7 +29,7 @@ dart analyze              # Static analysis (MUST pass before commit)
 dart fix --apply          # Auto-fix lint issues
 ```
 
-Lint rules (`analysis_options.yaml`): `prefer_const_constructors`, `prefer_const_declarations`, `avoid_print`, `prefer_single_quotes`. Suppress `invalid_annotation_target` for code gen annotations.
+Lint rules (`analysis_options.yaml`): extends `flutter_lints`, plus `prefer_const_constructors`, `prefer_const_declarations`, `avoid_print`, `prefer_single_quotes`. Suppress `invalid_annotation_target` for code gen annotations.
 
 ## Testing
 

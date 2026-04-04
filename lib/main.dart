@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/domain/providers/theme_provider.dart';
+import 'package:metrolife/domain/providers/user_profile_provider.dart';
+import 'package:metrolife/domain/providers/transaction_provider.dart';
 import 'package:metrolife/presentation/pages/main_shell.dart';
 import 'package:metrolife/presentation/pages/welcome_page.dart';
 
@@ -37,6 +39,19 @@ class _MetroLifeAppState extends ConsumerState<MetroLifeApp> {
       _showWelcome = !hasCompleted;
       _loading = false;
     });
+    _tryAutoSalary();
+  }
+
+  Future<void> _tryAutoSalary() async {
+    final profile = ref.read(userProfileProvider);
+    if (profile.monthlySalary > 0) {
+      await ref
+          .read(transactionServiceProvider)
+          .checkAutoSalary(
+            salaryDay: profile.salaryDay,
+            monthlySalary: profile.monthlySalary,
+          );
+    }
   }
 
   @override

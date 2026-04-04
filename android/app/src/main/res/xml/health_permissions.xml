@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<health-permissions xmlns:android="http://schemas.android.com/apk/res/android">
+    <permission android:name="android.permission.health.READ_STEPS"/>
+    <permission android:name="android.permission.health.WRITE_STEPS"/>
+    <permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+    <permission android:name="android.permission.health.WRITE_TOTAL_CALORIES_BURNED"/>
+    <permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
+    <permission android:name="android.permission.health.WRITE_ACTIVE_CALORIES_BURNED"/>
+    <permission android:name="android.permission.health.READ_DISTANCE_DELTA"/>
+    <permission android:name="android.permission.health.WRITE_DISTANCE_DELTA"/>
+    <permission android:name="android.permission.health.READ_EXERCISE"/>
+    <permission android:name="android.permission.health.WRITE_EXERCISE"/>
+    <permission android:name="android.permission.health.READ_WEIGHT"/>
+    <permission android:name="android.permission.health.WRITE_WEIGHT"/>
+</health-permissions>

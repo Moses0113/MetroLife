@@ -240,6 +240,10 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
   }
 
   Widget _buildCalendar(bool isDark, AsyncValue<MonthlySummary> summaryAsync) {
+    final profile = ref.watch(userProfileProvider);
+    final settlementDay = profile.settlementDay;
+    final salaryDay = profile.salaryDay;
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppTheme.bgSecondaryDark : Colors.white,
@@ -273,6 +277,44 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
                 ? AppTheme.textTertiary
                 : AppTheme.danger.withValues(alpha: 0.7),
           ),
+        ),
+        calendarBuilders: CalendarBuilders(
+          markerBuilder: (context, date, events) {
+            final isSettlementDay = date.day == settlementDay;
+            final isSalaryDay = date.day == salaryDay;
+
+            if (!isSettlementDay && !isSalaryDay) return null;
+
+            return Positioned(
+              bottom: 1,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isSettlementDay)
+                    Container(
+                      width: 6,
+                      height: 6,
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.accentPrimary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  if (isSalaryDay)
+                    Container(
+                      width: 6,
+                      height: 6,
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFCC00),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
         ),
         onPageChanged: (focusedDay) {
           setState(() => _focusedMonth = focusedDay);

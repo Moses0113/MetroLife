@@ -9,6 +9,8 @@ import 'package:metrolife/data/local/database.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/transaction_provider.dart';
 import 'package:metrolife/domain/providers/category_provider.dart';
+import 'package:metrolife/domain/providers/balance_provider.dart';
+import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/presentation/dialogs/add_transaction_dialog.dart';
 import 'package:metrolife/presentation/dialogs/balance_calendar_dialog.dart';
 
@@ -20,13 +22,16 @@ class FinancePage extends ConsumerStatefulWidget {
 }
 
 class _FinancePageState extends ConsumerState<FinancePage> {
-  DateTime _selectedMonth = DateTime.now();
+  final DateTime _selectedMonth = DateTime.now();
   bool _showRadialChart = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final summaryAsync = ref.watch(monthlySummaryProvider(_selectedMonth));
+    final profile = ref.watch(userProfileProvider);
+    final balanceAsync = ref.watch(
+      monthlyBalanceProvider(profile.settlementDay),
+    );
     final transactionsAsync = ref.watch(
       monthlyTransactionsProvider(_selectedMonth),
     );
@@ -54,15 +59,17 @@ class _FinancePageState extends ConsumerState<FinancePage> {
       body: ListView(
         padding: const EdgeInsets.all(AppTheme.spacingMd),
         children: [
-          // Balance Card
-          summaryAsync.when(
+          // Balance Card (based on settlement day)
+          balanceAsync.when(
             loading: () => _buildBalanceCard(0, 0, 0, isDark),
             error: (_, __) => _buildBalanceCard(0, 0, 0, isDark),
-            data: (summary) => _buildBalanceCard(
-              summary.balance,
-              summary.income,
-              summary.expense,
+            data: (balance) => _buildBalanceCard(
+              balance.currentPeriod.balance,
+              balance.currentPeriod.income,
+              balance.currentPeriod.expense,
               isDark,
+              subtitle:
+                  '${AppDateUtils.formatDdMm(balance.periodStart)} — ${AppDateUtils.formatDdMm(balance.periodEnd)}',
             ),
           ),
           const SizedBox(height: AppTheme.spacingMd),
@@ -82,7 +89,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                   ),
                   const SizedBox(height: AppTheme.spacingLg),
                   _showRadialChart
-                      ? summaryAsync.when(
+                      ? balanceAsync.when(
                           loading: () => const SizedBox(
                             height: 180,
                             child: Center(child: CircularProgressIndicator()),
@@ -91,8 +98,10 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                             height: 180,
                             child: Center(child: Text('無法載入圖表')),
                           ),
-                          data: (summary) =>
-                              _buildRadialBarChart(summary, isDark),
+                          data: (balance) => _buildRadialChartFromBalance(
+                            balance.currentPeriod,
+                            isDark,
+                          ),
                         )
                       : breakdownAsync.when(
                           loading: () => const SizedBox(
@@ -167,8 +176,9 @@ class _FinancePageState extends ConsumerState<FinancePage> {
     double balance,
     double income,
     double expense,
-    bool isDark,
-  ) {
+    bool isDark, {
+    String? subtitle,
+  }) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
@@ -183,9 +193,26 @@ class _FinancePageState extends ConsumerState<FinancePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '本月結餘',
-            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+          Row(
+            children: [
+              Text(
+                '本月結餘',
+                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textTertiary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: AppTheme.spacingSm),
           Text(
@@ -381,6 +408,57 @@ class _FinancePageState extends ConsumerState<FinancePage> {
       );
     }
 
+    return _buildRadialChart(
+      incomeRatio: incomeRatio,
+      expenseRatio: expenseRatio,
+      income: summary.income,
+      expense: summary.expense,
+      isDark: isDark,
+    );
+  }
+
+  Widget _buildRadialChartFromBalance(PeriodBalance balance, bool isDark) {
+    final total = balance.income + balance.expense;
+    final incomeRatio = total > 0 ? balance.income / total : 0.0;
+    final expenseRatio = total > 0 ? balance.expense / total : 0.0;
+
+    if (total == 0) {
+      return SizedBox(
+        height: 180,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bar_chart,
+              size: 60,
+              color: AppTheme.textTertiary.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: AppTheme.spacingSm),
+            const Text(
+              '暫無收支數據',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return _buildRadialChart(
+      incomeRatio: incomeRatio,
+      expenseRatio: expenseRatio,
+      income: balance.income,
+      expense: balance.expense,
+      isDark: isDark,
+    );
+  }
+
+  Widget _buildRadialChart({
+    required double incomeRatio,
+    required double expenseRatio,
+    required double income,
+    required double expense,
+    required bool isDark,
+  }) {
     return SizedBox(
       height: 180,
       child: Row(
@@ -417,14 +495,14 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                 '收入',
                 AppTheme.success,
                 incomeRatio,
-                CurrencyUtils.formatGbp(summary.income),
+                CurrencyUtils.formatGbp(income),
               ),
               const SizedBox(height: AppTheme.spacingSm),
               _buildRadialLegendItem(
                 '支出',
                 AppTheme.danger,
                 expenseRatio,
-                CurrencyUtils.formatGbp(summary.expense),
+                CurrencyUtils.formatGbp(expense),
               ),
             ],
           ),
@@ -473,7 +551,6 @@ class _FinancePageState extends ConsumerState<FinancePage> {
     TransactionRow t,
   ) {
     final isIncome = t.amount > 0;
-    final amount = t.amount.abs();
     final categoriesAsync = ref.watch(allCategoriesProvider);
 
     return Dismissible(

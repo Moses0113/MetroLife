@@ -40,7 +40,7 @@ class MonthlyPeriodBalance {
 
 /// 計算結算週期的起止日期
 DateTime _periodStart(int settlementDay, DateTime referenceDate) {
-  final day = settlementDay.clamp(1, 28);
+  final day = settlementDay.clamp(1, 31);
   if (referenceDate.day >= day) {
     return DateTime(referenceDate.year, referenceDate.month, day);
   } else {
