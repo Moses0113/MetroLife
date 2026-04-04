@@ -14,8 +14,8 @@ class UserProfile {
 
   const UserProfile({
     this.username = 'User',
-    this.heightCm = 170,
-    this.weightKg = 70,
+    this.heightCm = 0,
+    this.weightKg = 0,
     this.settlementDay = 1,
     this.salaryDay = 1,
     this.monthlySalary = 0,
@@ -57,8 +57,8 @@ class UserProfileNotifier extends Notifier<UserProfile> {
     if (!_usernameSet) {
       state = UserProfile(
         username: prefs.getString('username') ?? 'User',
-        heightCm: prefs.getDouble('height_cm') ?? 170,
-        weightKg: prefs.getDouble('weight_kg') ?? 70,
+        heightCm: prefs.getDouble('height_cm') ?? 0,
+        weightKg: prefs.getDouble('weight_kg') ?? 0,
         settlementDay: settlementDay,
         salaryDay: salaryDay,
         monthlySalary: monthlySalary,
@@ -66,8 +66,8 @@ class UserProfileNotifier extends Notifier<UserProfile> {
     } else {
       state = UserProfile(
         username: state.username,
-        heightCm: prefs.getDouble('height_cm') ?? 170,
-        weightKg: prefs.getDouble('weight_kg') ?? 70,
+        heightCm: prefs.getDouble('height_cm') ?? 0,
+        weightKg: prefs.getDouble('weight_kg') ?? 0,
         settlementDay: settlementDay,
         salaryDay: salaryDay,
         monthlySalary: monthlySalary,
