@@ -7,6 +7,7 @@ import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/domain/providers/theme_provider.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/domain/providers/transaction_provider.dart';
+import 'package:metrolife/domain/providers/health_provider.dart';
 import 'package:metrolife/presentation/pages/main_shell.dart';
 import 'package:metrolife/presentation/pages/welcome_page.dart';
 
@@ -40,6 +41,7 @@ class _MetroLifeAppState extends ConsumerState<MetroLifeApp> {
       _loading = false;
     });
     _tryAutoSalary();
+    _trySyncHealthData();
   }
 
   Future<void> _tryAutoSalary() async {
@@ -51,6 +53,15 @@ class _MetroLifeAppState extends ConsumerState<MetroLifeApp> {
             salaryDay: profile.salaryDay,
             monthlySalary: profile.monthlySalary,
           );
+    }
+  }
+
+  Future<void> _trySyncHealthData() async {
+    final connected = ref.read(healthConnectedProvider);
+    if (connected) {
+      ref.invalidate(healthStepsProvider);
+      ref.invalidate(healthCaloriesProvider);
+      ref.invalidate(weeklyStepsProvider);
     }
   }
 

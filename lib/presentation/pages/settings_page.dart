@@ -32,7 +32,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final _breakMinCtrl = TextEditingController();
   int _focusMin = 25;
   int _breakMin = 5;
-  bool _healthSyncEnabled = false;
 
   @override
   void dispose() {
@@ -218,21 +217,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           ]),
 
-          // Health
-          _buildSection(context, l10n.healthSync, [
-            SwitchListTile(
-              secondary: const Icon(
-                Icons.health_and_safety,
-                color: AppTheme.accentPrimary,
-              ),
-              title: Text(l10n.healthSync),
-              subtitle: Text(l10n.healthSyncDescription),
-              value: _healthSyncEnabled,
-              onChanged: (v) => setState(() => _healthSyncEnabled = v),
-              activeColor: AppTheme.accentPrimary,
-            ),
-          ]),
-
           // Data
           _buildSection(context, '資料', [
             _buildNavTile(
@@ -268,7 +252,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               context,
               icon: Icons.privacy_tip_outlined,
               title: l10n.privacyPolicy,
-              onTap: () {},
+              onTap: () => _showPrivacyPolicy(context),
             ),
           ]),
 
@@ -523,6 +507,42 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('匯入失敗: $e')));
     }
+  }
+
+  void _showPrivacyPolicy(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.privacy_tip_outlined, color: AppTheme.accentPrimary),
+            SizedBox(width: 8),
+            Text('私隱政策'),
+          ],
+        ),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('所有數據均透過 SQLite 儲存在本地裝置。', style: TextStyle(height: 1.5)),
+              SizedBox(height: 12),
+              Text('無雲端後端，無需註冊帳戶。', style: TextStyle(height: 1.5)),
+              SizedBox(height: 12),
+              Text('健康數據絕不離開裝置。', style: TextStyle(height: 1.5)),
+              SizedBox(height: 12),
+              Text('位置資訊僅用於即時功能（如巴士站、跑步 GPS）。', style: TextStyle(height: 1.5)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('關閉'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

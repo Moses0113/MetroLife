@@ -1,4 +1,5 @@
 /// 運動頁 - 完整實現 (prd.md §3.4, UI.md §3.4)
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,9 +25,33 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
   double? _bmi;
   String _bmiCategory = '';
   bool _useMetric = true;
+  Timer? _healthSyncTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startHealthSyncTimer();
+  }
+
+  void _startHealthSyncTimer() {
+    _healthSyncTimer = Timer.periodic(
+      const Duration(seconds: 8),
+      (_) => _refreshHealthData(),
+    );
+  }
+
+  void _refreshHealthData() {
+    final connected = ref.read(healthConnectedProvider);
+    if (connected) {
+      ref.invalidate(healthStepsProvider);
+      ref.invalidate(healthCaloriesProvider);
+      ref.invalidate(weeklyStepsProvider);
+    }
+  }
 
   @override
   void dispose() {
+    _healthSyncTimer?.cancel();
     _heightCtrl.dispose();
     _weightCtrl.dispose();
     super.dispose();
