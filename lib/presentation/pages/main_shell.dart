@@ -16,12 +16,16 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _currentIndex = 2; // Home is default (center)
+  int _currentIndex = 2;
+
+  void _navigateToTab(int index) {
+    setState(() => _currentIndex = index);
+  }
 
   late final List<Widget> _pages = [
     const DailyPage(),
     const FinancePage(),
-    const HomePage(),
+    HomePage(onNavigateToSettings: _navigateToTab),
     const ExercisePage(),
     const SettingsPage(),
   ];

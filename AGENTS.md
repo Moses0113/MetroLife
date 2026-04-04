@@ -43,7 +43,7 @@ Tests use `flutter_test`. Wrap widgets in `ProviderScope` for Riverpod. Use `pum
 
 ## Code Generation
 
-After editing any of these, re-run `dart run build_runner build --delete-conflicting-outputs`:
+After editing these, re-run `dart run build_runner build --delete-conflicting-outputs`:
 - Freezed models (`@freezed` in `lib/data/models/`)
 - Drift tables (`.drift` in `lib/data/local/tables/`)
 - Retrofit API clients (`@RestApi` in `lib/data/repositories/`)
@@ -64,16 +64,13 @@ Maps: `google_maps_flutter`, `geolocator`. Health: `health` 12.x.
 ```
 lib/
   core/          Constants, theme (AppTheme), utilities
-  data/
-    local/       Drift database (tables/, daos/, database.dart)
-    models/      Freezed data classes
-    repositories/ API services (HealthService, KMB, HKO)
-  domain/
-    providers/   Riverpod providers (all business logic)
-  presentation/
-    dialogs/     Bottom sheet forms with static show() methods
-    pages/       Screen widgets
-    widgets/     Shared reusable widgets
+  data/local/    Drift database (tables/, daos/, database.dart)
+  data/models/   Freezed data classes
+  data/repositories/ API services (HealthService, KMB, HKO)
+  domain/providers/ Riverpod providers (all business logic)
+  presentation/dialogs/ Bottom sheet forms with static show() methods
+  presentation/pages/ Screen widgets
+  presentation/widgets/ Shared reusable widgets
   l10n/          Localization ARB files + generated AppLocalizations
 ```
 
@@ -81,51 +78,28 @@ lib/
 
 ### Imports
 
-Order: `dart:` → `package:flutter/` → third-party → local `package:metrolife/...`. Use `package:` paths for all lib/ imports — no relative paths crossing layers.
+Order: `dart:` → `package:flutter/` → third-party → local `package:metrolife/...`. Use `package:` paths for all lib/ imports.
 
 ```dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/data/local/database.dart';
-import 'package:metrolife/domain/providers/todo_provider.dart';
 ```
 
 ### Naming
 
-- Files: `snake_case.dart` (`app_theme.dart`, `add_todo_dialog.dart`)
-- Classes: `PascalCase` (`AppTheme`, `HealthService`, `AddTodoDialog`)
-- Variables/methods: `camelCase` (`getTodaySteps()`)
-- Private members: `_leadingUnderscore` (`_health`, `_configured`)
-- Providers: `camelCase` + `Provider` suffix (`themeModeProvider`, `todoServiceProvider`)
-- Enums/library consts: `UPPER_SNAKE_CASE`
+- Files: `snake_case.dart` | Classes: `PascalCase` | Methods/variables: `camelCase`
+- Private members: `_leadingUnderscore` | Providers: `camelCase` + `Provider` suffix
+- Enums/consts: `UPPER_SNAKE_CASE`
 
 ### Widgets
 
-Use `super.key` constructor. Use `ConsumerWidget` for Riverpod, `ConsumerStatefulWidget` for stateful + Riverpod. Always provide a `static void show()` for dialogs/bottom sheets:
-
-```dart
-class AddTodoDialog extends ConsumerStatefulWidget {
-  const AddTodoDialog({super.key, this.existing});
-  final TodoRow? existing;
-  @override
-  ConsumerState<AddTodoDialog> createState() => _AddTodoDialogState();
-
-  static void show(BuildContext context, {TodoRow? existing}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => AddTodoDialog(existing: existing),
-    );
-  }
-}
-```
+Use `super.key` constructor. Use `ConsumerWidget` for Riverpod, `ConsumerStatefulWidget` for stateful. Always provide `static void show()` for dialogs/bottom sheets.
 
 ### Design Tokens
 
-Always use `AppTheme` constants — never hardcode colors/spacing/radii:
-`AppTheme.bgPrimary`, `AppTheme.spacingMd`, `AppTheme.radiusMedium`, `AppTheme.shadowSm`.
+Always use `AppTheme` constants — never hardcode colors/spacing/radii: `AppTheme.bgPrimary`, `AppTheme.spacingMd`, `AppTheme.radiusMedium`.
 
 ### Localization
 
@@ -133,40 +107,15 @@ Use `AppLocalizations.of(context)` for all user-facing strings. Never hardcode l
 
 ### Freezed Models
 
-Use `@Default()` for optional fields, `abstract class` with `with _$ClassName` mixin, and include `fromJson` factory:
-
-```dart
-@freezed
-abstract class ForecastDay with _$ForecastDay {
-  const factory ForecastDay({
-    @Default('') String forecastDate,
-    @Default(0) int forecastMaxtemp,
-  }) = _ForecastDay;
-
-  factory ForecastDay.fromJson(Map<String, dynamic> json) =>
-      _$ForecastDayFromJson(json);
-}
-```
+Use `@Default()` for optional fields, `abstract class` with `with _$ClassName` mixin, and include `fromJson` factory.
 
 ### Error Handling
 
-Silent failure with defaults is the standard pattern. Use `try/catch` returning safe defaults (`null`, `false`, `0`, `[]`). Do not use `print()` (lint forbids it).
-
-```dart
-try {
-  return await _health.requestAuthorization(_types, permissions: permissions);
-} catch (_) {
-  return false;
-}
-```
-
-### Database
-
-Drift tables defined in `.drift` files under `lib/data/local/tables/`. Use `TodosCompanion` pattern for inserts/updates. Providers expose `StreamProvider` for reactive queries.
+Silent failure with defaults. Use `try/catch` returning safe defaults (`null`, `false`, `0`, `[]`). Do not use `print()`.
 
 ### Static Utilities
 
-Use private constructors for utility classes: `AppConstants._()`, `AppDateUtils._()`.
+Use private constructors: `AppConstants._()`, `AppDateUtils._()`.
 
 ## AI Assistant Rules
 

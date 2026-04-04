@@ -206,12 +206,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.exercise),
-        actions: [
-          IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
-        ],
-      ),
+      appBar: AppBar(title: Text(l10n.exercise)),
       body: ListView(
         padding: const EdgeInsets.all(AppTheme.spacingMd),
         children: [

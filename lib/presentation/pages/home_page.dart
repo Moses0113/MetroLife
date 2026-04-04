@@ -6,13 +6,17 @@ import 'package:metrolife/core/utils/date_utils.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/domain/providers/todo_provider.dart';
+import 'package:metrolife/domain/providers/weather_bus_provider.dart';
+import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
 import 'package:metrolife/presentation/widgets/weather_card.dart';
 import 'package:metrolife/presentation/widgets/bus_card.dart';
 import 'package:metrolife/presentation/dialogs/nine_day_forecast_sheet.dart';
 import 'package:metrolife/presentation/pages/focus_timer_page.dart';
 
 class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
+  final void Function(int)? onNavigateToSettings;
+
+  const HomePage({super.key, this.onNavigateToSettings});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,88 +28,105 @@ class HomePage extends ConsumerWidget {
         title: const Text('MetroLife'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            icon: const Icon(Icons.person_outline),
+            onPressed: onNavigateToSettings != null
+                ? () => onNavigateToSettings!(4)
+                : null,
           ),
-          IconButton(icon: const Icon(Icons.person_outline), onPressed: () {}),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppTheme.spacingMd),
-        children: [
-          // Greeting (prd.md §3.1)
-          Text(
-            '${AppDateUtils.greeting()} ${profile.username}',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            '${AppDateUtils.formatTime(DateTime.now())}, ${AppDateUtils.dayOfWeek(DateTime.now())}',
-            style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(currentWeatherProvider);
+          ref.invalidate(weatherWarningsProvider);
+          final selectedStop = ref.read(selectedBusStopProvider);
+          if (selectedStop != null) {
+            ref.invalidate(busEtaProvider(selectedStop.stopId));
+          }
+          ref.invalidate(nearestBusStopProvider);
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(AppTheme.spacingMd),
+          children: [
+            // Greeting (prd.md §3.1)
+            Text(
+              '${AppDateUtils.greeting()} ${profile.username}',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '${AppDateUtils.formatTime(DateTime.now())}, ${AppDateUtils.dayOfWeek(DateTime.now())}',
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingLg),
 
-          // Weather Card (prd.md §3.1 + UI.md §3.1)
-          WeatherCard(onForecastTap: () => NineDayForecastSheet.show(context)),
-          const SizedBox(height: AppTheme.spacingMd),
+            // Weather Card (prd.md §3.1 + UI.md §3.1)
+            WeatherCard(
+              onForecastTap: () => NineDayForecastSheet.show(context),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
 
-          // Bus Card (prd.md §3.1 + UI.md §3.1)
-          BusCard(),
-          const SizedBox(height: AppTheme.spacingMd),
+            // Bus Card (prd.md §3.1 + UI.md §3.1)
+            BusCard(),
+            const SizedBox(height: AppTheme.spacingMd),
 
-          // Tasks Preview (prd.md §3.1)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacingMd),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.checklist,
-                        color: AppTheme.accentPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: AppTheme.spacingSm),
-                      Text(
-                        l10n.todaysTasks,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+            // Tasks Preview (prd.md §3.1)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingMd),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.checklist,
+                          color: AppTheme.accentPrimary,
+                          size: 20,
                         ),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  _buildTodayTasks(context, ref, l10n),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-
-          // Focus Timer CTA (prd.md §3.1)
-          GestureDetector(
-            onTap: () => FocusTimerPage.show(context),
-            child: Center(
-              child: Column(
-                children: [
-                  const Text('🍅', style: TextStyle(fontSize: 48)),
-                  const SizedBox(height: AppTheme.spacingSm),
-                  Text(
-                    l10n.startFocusTimer,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.accentPrimary,
+                        const SizedBox(width: AppTheme.spacingSm),
+                        Text(
+                          l10n.todaysTasks,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const Divider(),
+                    _buildTodayTasks(context, ref, l10n),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: AppTheme.spacingXxl),
-        ],
+            const SizedBox(height: AppTheme.spacingLg),
+
+            // Focus Timer CTA (prd.md §3.1)
+            GestureDetector(
+              onTap: () => FocusTimerPage.show(context),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Text('🍅', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: AppTheme.spacingSm),
+                    Text(
+                      l10n.startFocusTimer,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.accentPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingXxl),
+          ],
+        ),
       ),
     );
   }
