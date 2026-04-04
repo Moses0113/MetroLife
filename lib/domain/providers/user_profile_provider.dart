@@ -49,6 +49,11 @@ class UserProfileNotifier extends Notifier<UserProfile> {
     return const UserProfile();
   }
 
+  Future<void> reset() async {
+    _usernameSet = false;
+    state = const UserProfile();
+  }
+
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final settlementDay = prefs.getInt('settlement_day') ?? 1;

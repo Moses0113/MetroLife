@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
+import 'package:metrolife/core/utils/rabbit_svg.dart';
 import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/domain/providers/database_provider.dart';
 import 'package:metrolife/domain/providers/theme_provider.dart';
@@ -10,6 +11,7 @@ import 'package:metrolife/domain/providers/focus_timer_provider.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/domain/providers/export_provider.dart';
 import 'package:metrolife/domain/providers/transaction_provider.dart';
+import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
 import 'package:metrolife/presentation/pages/main_shell.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -456,6 +458,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     await db.clearAllData();
     await prefs.clear();
 
+    ref.read(userProfileProvider.notifier).reset();
+    ref.read(themeModeProvider.notifier).reset();
+    ref.invalidate(focusTimerProvider);
+    ref.invalidate(selectedBusStopProvider);
+    ref.invalidate(busStopHistoryProvider);
+
     if (!context.mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
@@ -544,6 +552,10 @@ class _ResetWelcomePageState extends ConsumerState<_ResetWelcomePage> {
           child: Column(
             children: [
               const Spacer(flex: 2),
+
+              const RabbitSvgWidget(type: 'idle', size: 160),
+              const SizedBox(height: AppTheme.spacingXl),
+
               const Text(
                 'MetroLife',
                 style: TextStyle(
@@ -558,6 +570,22 @@ class _ResetWelcomePageState extends ConsumerState<_ResetWelcomePage> {
                 style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
               ),
               const SizedBox(height: AppTheme.spacingXl),
+
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingMd),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: AppTheme.shadowSm,
+                ),
+                child: const Text(
+                  '你好！我係勤力兔，一齊打理生活啦！',
+                  style: TextStyle(fontSize: 16, height: 1.5),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingXl),
+
               TextField(
                 controller: _nameCtrl,
                 textAlign: TextAlign.center,

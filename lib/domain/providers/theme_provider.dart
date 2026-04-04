@@ -32,4 +32,10 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   void toggle() {
     setMode(state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light);
   }
+
+  Future<void> reset() async {
+    state = ThemeMode.light;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('theme_mode');
+  }
 }
