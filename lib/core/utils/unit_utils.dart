@@ -29,6 +29,15 @@ class UnitUtils {
     return met * weightKg * (minutes / 60.0);
   }
 
+  // Calories from steps
+  /// Approximate calories burned from walking steps
+  /// Formula: steps × 0.04 × (weightKg / 70) ≈ 0.04 kcal per step at 70kg
+  static double calculateStepsCalories(int steps, double weightKg) {
+    if (steps <= 0 || weightKg <= 0) return 0;
+    const double caloriesPerStepAt70kg = 0.04;
+    return steps * caloriesPerStepAt70kg * (weightKg / 70);
+  }
+
   // Haversine distance between two GPS points (in meters)
   static double haversineDistance(
     double lat1,

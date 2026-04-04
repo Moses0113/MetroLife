@@ -134,16 +134,12 @@ class ExerciseService {
 
   /// Record step count
   Future<void> recordSteps(int steps, double weightKg) async {
-    final calories = UnitUtils.calculateMetCalories(
-      3.5,
-      weightKg,
-      1,
-    ); // Walking MET ~3.5
+    final calories = UnitUtils.calculateStepsCalories(steps, weightKg);
     await recordExercise(
       type: 'steps',
       startTime: DateTime.now(),
       steps: steps,
-      caloriesBurned: calories * (steps / 100),
+      caloriesBurned: calories,
     );
   }
 
