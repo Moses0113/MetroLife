@@ -1,7 +1,9 @@
 /// 巴士綫選擇器 — 直接輸入綫號，無需先選站
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
+import 'package:metrolife/core/utils/unit_utils.dart';
 import 'package:metrolife/data/models/bus_models.dart';
 import 'package:metrolife/domain/providers/weather_bus_provider.dart';
 import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
@@ -27,8 +29,10 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
   final _routeCtrl = TextEditingController();
   List<Map<String, dynamic>> _matchedRoutes = [];
   List<BusStop> _routeStops = [];
+  List<int> _originalIndices = []; // Track original index for each stop
   String? _selectedRouteKey;
   bool _loadingStops = false;
+  String? _nearestStopId;
 
   @override
   void dispose() {
@@ -78,15 +82,79 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
         bound,
         serviceType,
       );
+
+      // Find nearest stop and add it at top, keep original order
+      BusStop? nearestStop;
+      try {
+        final permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          await Geolocator.requestPermission();
+        }
+
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (serviceEnabled) {
+          final position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.medium,
+              timeLimit: Duration(seconds: 10),
+            ),
+          );
+
+          double nearestDist = double.infinity;
+          for (final stop in stops) {
+            final dist = UnitUtils.haversineDistance(
+              position.latitude,
+              position.longitude,
+              stop.lat,
+              stop.long,
+            );
+            if (dist < nearestDist) {
+              nearestDist = dist;
+              nearestStop = stop;
+            }
+          }
+        }
+      } catch (_) {
+        // Location not available
+      }
+
+      // Build final list: nearest first, then original order (keep nearest in both places)
+      final routeStopsWithNearest = <BusStop>[];
+      final originalIndices = <int>[];
+
+      if (nearestStop != null) {
+        routeStopsWithNearest.add(nearestStop);
+        originalIndices.add(-1); // Mark nearest as special (no original index)
+      }
+      // Add all stops in original order (no removal)
+      for (int i = 0; i < stops.length; i++) {
+        routeStopsWithNearest.add(stops[i]);
+        originalIndices.add(i); // Original index in the route
+      }
+
       if (mounted) {
         setState(() {
-          _routeStops = stops;
+          _routeStops = routeStopsWithNearest;
+          _originalIndices = originalIndices;
+          _nearestStopId = nearestStop?.stop;
           _loadingStops = false;
         });
       }
     } catch (_) {
       if (mounted) setState(() => _loadingStops = false);
     }
+  }
+
+  int? _findNearestIndex() {
+    if (_nearestStopId == null) return null;
+    // Skip index 0 since it's the nearest (added at top)
+    for (int i = 1; i < _routeStops.length; i++) {
+      if (_routeStops[i].stop == _nearestStopId) {
+        return i;
+      }
+    }
+    return null;
   }
 
   @override
@@ -400,29 +468,89 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
     if (_loadingStops) return const Center(child: CircularProgressIndicator());
     if (_routeStops.isEmpty) return const Center(child: Text('此路綫暫無站點資料'));
 
+    final nearestIndex = _findNearestIndex();
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd,
-        vertical: AppTheme.spacingSm,
-      ),
+      shrinkWrap: true,
       itemCount: _routeStops.length,
       itemBuilder: (context, index) {
         final stop = _routeStops[index];
+        final isNearest =
+            index == 0; // Index 0 is always nearest (added at top)
+        final isOriginalNearest = index == nearestIndex;
+
+        // Display number: index 0 = icon, index 1 = 1, index 2 = 2, etc.
+        final displayNumber = isNearest ? null : index;
+
         return Card(
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppTheme.accentPrimary,
+              backgroundColor: isNearest
+                  ? AppTheme.success
+                  : AppTheme.accentPrimary,
               radius: 16,
-              child: Text(
-                '${index + 1}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: isNearest
+                  ? const Icon(Icons.near_me, color: Colors.white, size: 16)
+                  : displayNumber != null
+                  ? Text(
+                      '$displayNumber',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
-            title: Text(stop.nameTc, style: const TextStyle(fontSize: 14)),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    stop.nameTc,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                if (isNearest)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      '最近',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.success,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (isOriginalNearest && !isNearest)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    margin: const EdgeInsets.only(left: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentPrimary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '#${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.accentPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             subtitle: stop.nameEn.isNotEmpty
                 ? Text(
                     stop.nameEn,
