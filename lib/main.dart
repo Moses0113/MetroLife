@@ -41,6 +41,7 @@ class _MetroLifeAppState extends ConsumerState<MetroLifeApp> {
       _loading = false;
     });
     _tryAutoSalary();
+    await _initializeHealthConnection();
     _trySyncHealthData();
   }
 
@@ -53,6 +54,15 @@ class _MetroLifeAppState extends ConsumerState<MetroLifeApp> {
             salaryDay: profile.salaryDay,
             monthlySalary: profile.monthlySalary,
           );
+    }
+  }
+
+  Future<void> _initializeHealthConnection() async {
+    await ref.read(healthConnectedProvider.notifier).initialize();
+    final service = ref.read(healthServiceProvider);
+    final hasPermission = await service.hasPermissions();
+    if (!hasPermission) {
+      await ref.read(healthConnectedProvider.notifier).setConnected(false);
     }
   }
 

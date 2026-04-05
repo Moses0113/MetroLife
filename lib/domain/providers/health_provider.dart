@@ -1,16 +1,20 @@
-/// Health Connect Riverpod Providers
-/// 參考: prd.md Section 3.4, 4.2
+// Health Connect Riverpod Providers
+// 參考: prd.md Section 3.4, 4.2
+
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/data/repositories/health_service.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/core/utils/unit_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final healthServiceProvider = Provider<HealthService>((ref) {
   return HealthService();
 });
 
-/// Health connection status
+const _healthConnectedKey = 'health_connected';
+
 final healthConnectedProvider = NotifierProvider<HealthConnectedNotifier, bool>(
   HealthConnectedNotifier.new,
 );
@@ -19,7 +23,16 @@ class HealthConnectedNotifier extends Notifier<bool> {
   @override
   bool build() => false;
 
-  void setConnected(bool value) => state = value;
+  Future<void> initialize() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_healthConnectedKey) ?? false;
+  }
+
+  Future<void> setConnected(bool value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_healthConnectedKey, value);
+  }
 }
 
 /// Today's steps from Health Connect
