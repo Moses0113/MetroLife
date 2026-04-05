@@ -111,19 +111,31 @@ class WeatherCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
+                  const Icon(
+                    Icons.thermostat,
+                    size: 20,
+                    color: AppTheme.accentPrimary,
+                  ),
+                  const SizedBox(width: 4),
                   Text(
                     '${weather.temp}°C',
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: AppTheme.spacingMd),
+                  const SizedBox(width: AppTheme.spacingLg),
+                  const Icon(
+                    Icons.water_drop,
+                    size: 20,
+                    color: AppTheme.accentPrimary,
+                  ),
+                  const SizedBox(width: 4),
                   Text(
-                    '${AppLocalizations.of(context).humidity}: ${weather.humi}%',
+                    '${weather.humi}%',
                     style: const TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.textSecondary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],

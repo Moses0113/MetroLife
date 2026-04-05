@@ -190,7 +190,7 @@ abstract class AppLocalizations {
   /// No description provided for @todaysTasks.
   ///
   /// In zh_HK, this message translates to:
-  /// **'今日任務'**
+  /// **'待辦事項'**
   String get todaysTasks;
 
   /// No description provided for @completedTasks.

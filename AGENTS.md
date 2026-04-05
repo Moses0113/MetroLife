@@ -43,21 +43,21 @@ Tests use `flutter_test`. Wrap widgets in `ProviderScope` for Riverpod. Use `pum
 
 ## Code Generation
 
-After editing these, re-run `dart run build_runner build --delete-conflicting-outputs`:
-- Freezed models (`@freezed` in `lib/data/models/`)
-- Drift tables (`.drift` in `lib/data/local/tables/`)
-- Retrofit API clients (`@RestApi` in `lib/data/repositories/`)
-- Riverpod providers (`@riverpod` annotation)
-- AutoRoute route definitions, Injectable DI (`@Injectable`, `@singleton`)
+After editing Drift tables (`lib/data/local/tables/*.drift`):
+```bash
+dart run drift_dev generate
+```
+
+After editing Freezed, Retrofit, Riverpod, AutoRoute, or JSON models:
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
 
 After editing ARB files in `lib/l10n/arb/`, run `flutter gen-l10n`.
 
 ## Key Dependencies
 
-State: `flutter_riverpod` 3.x, `riverpod_annotation` 4.x. Database: `drift` 2.x, `drift_flutter`.
-Models: `freezed` 3.x, `json_serializable`. Network: `dio` 5.x, `retrofit` 4.x.
-Routing: `auto_route` 10.x. DI: `injectable` 2.x, `get_it` 8.x.
-Maps: `google_maps_flutter`, `geolocator`. Health: `health` 12.x.
+Riverpod 3.x, Drift 2.x, Freezed 3.x, Retrofit 4.x, AutoRoute 10.x, Injectable 2.x.
 
 ## Architecture
 

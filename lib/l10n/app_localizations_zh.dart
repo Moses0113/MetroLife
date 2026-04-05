@@ -490,7 +490,7 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
   String get searchOtherStop => '搜尋其他站點';
 
   @override
-  String get todaysTasks => '今日任務';
+  String get todaysTasks => '待辦事項';
 
   @override
   String get completedTasks => '已完成';
