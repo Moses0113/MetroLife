@@ -1,4 +1,6 @@
 /// 天氣卡片 Widget (UI.md §3.1)
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
@@ -106,15 +108,6 @@ class WeatherCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                weather.desc.isNotEmpty ? weather.desc : '—',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -178,10 +171,21 @@ class WeatherCard extends ConsumerWidget {
 
   IconData _getWeatherIcon(String desc) {
     final d = desc.toLowerCase();
-    if (d.contains('sunny') || d.contains('fine')) return Icons.wb_sunny;
-    if (d.contains('cloud')) return Icons.cloud;
-    if (d.contains('rain') || d.contains('shower')) return Icons.grain;
-    if (d.contains('thunder')) return Icons.flash_on;
+    if (d.contains('雷') || d.contains('thunder')) {
+      return Icons.flash_on;
+    }
+    if (d.contains('雨') || d.contains('rain')) {
+      return Icons.water_drop;
+    }
+    if (d.contains('微') || d.contains('驟') || d.contains('driz')) {
+      return Icons.grain;
+    }
+    if (d.contains('雲') || d.contains('cloud')) {
+      return Icons.cloud;
+    }
+    if (d.contains('晴') || d.contains('sunny') || d.contains('fine')) {
+      return Icons.wb_sunny;
+    }
     return Icons.cloud;
   }
 }

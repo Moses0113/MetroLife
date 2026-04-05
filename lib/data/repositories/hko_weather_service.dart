@@ -32,15 +32,8 @@ class HkoWeatherService {
     String desc = '';
     if (lang == 'tc') {
       desc = flwData['forecastDesc'] ?? '';
-      // Get first sentence for short display
-      if (desc.contains('。')) {
-        desc = desc.split('。').first;
-      }
     } else {
       desc = flwData['forecastDesc'] ?? '';
-      if (desc.contains('.')) {
-        desc = desc.split('.').first;
-      }
     }
 
     // Extract icon from rhrread
