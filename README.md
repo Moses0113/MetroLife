@@ -55,7 +55,6 @@ lib/
 | Charts | fl_chart |
 | Calendar | table_calendar |
 | Health | health 12.x (HealthKit + Health Connect) |
-| Maps | google_maps_flutter |
 
 ## API Integration
 
@@ -71,3 +70,7 @@ lib/
 ## Privacy
 
 All data stored locally on device. No cloud backend, no account required. Health data never leaves the device.
+
+## Copyright
+Copyright © 2026 MOSES MO
+GitHub: Moses0113
