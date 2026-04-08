@@ -72,5 +72,5 @@ lib/
 All data stored locally on device. No cloud backend, no account required. Health data never leaves the device.
 
 ## Copyright
-Copyright © 2026 MOSES MO
+Copyright © 2026
 GitHub: Moses0113
