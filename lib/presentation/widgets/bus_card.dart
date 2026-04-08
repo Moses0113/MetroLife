@@ -1,4 +1,5 @@
 /// 巴士卡片 Widget (UI.md §3.1)
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
@@ -9,11 +10,46 @@ import 'package:metrolife/l10n/app_localizations.dart';
 import 'package:metrolife/presentation/dialogs/bus_stop_selector.dart';
 import 'package:metrolife/presentation/dialogs/bus_route_selector.dart';
 
-class BusCard extends ConsumerWidget {
+class BusCard extends ConsumerStatefulWidget {
   const BusCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BusCard> createState() => _BusCardState();
+}
+
+class _BusCardState extends ConsumerState<BusCard> {
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoRefresh();
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) => _refreshBusData(),
+    );
+  }
+
+  void _refreshBusData() {
+    final selectedStop = ref.read(selectedBusStopProvider);
+    if (selectedStop != null) {
+      ref.invalidate(busEtaProvider(selectedStop.stopId));
+    } else {
+      ref.invalidate(nearestBusStopProvider);
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final selectedStop = ref.watch(selectedBusStopProvider);
 

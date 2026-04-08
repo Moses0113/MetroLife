@@ -1,5 +1,6 @@
 /// 設定頁 - 完整實現 (prd.md §3.5)
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
@@ -13,6 +14,24 @@ import 'package:metrolife/domain/providers/export_provider.dart';
 import 'package:metrolife/domain/providers/transaction_provider.dart';
 import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
 import 'package:metrolife/presentation/pages/main_shell.dart';
+
+class _RangeInputFormatter extends TextInputFormatter {
+  final int min;
+  final int max;
+  _RangeInputFormatter(this.min, this.max);
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) return newValue;
+    final intValue = int.tryParse(newValue.text);
+    if (intValue == null) return oldValue;
+    if (intValue < min || intValue > max) return oldValue;
+    return newValue;
+  }
+}
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -136,6 +155,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               label: l10n.salaryDay,
               controller: _salaryDayCtrl..text = profile.salaryDay.toString(),
               suffix: '日',
+              limit31: true,
               onChanged: (v) {
                 final val = int.tryParse(v);
                 if (val != null && val >= 1 && val <= 31) {
@@ -156,6 +176,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               controller: _settlementDayCtrl
                 ..text = profile.settlementDay.toString(),
               suffix: '日',
+              limit31: true,
               onChanged: (v) {
                 final val = int.tryParse(v);
                 if (val != null && val >= 1 && val <= 31) {
@@ -346,6 +367,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     String? suffix,
     String? prefix,
     ValueChanged<String>? onChanged,
+    bool limit31 = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -365,6 +387,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ),
         keyboardType: TextInputType.number,
+        inputFormatters: limit31
+            ? [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(2),
+                _RangeInputFormatter(1, 31),
+              ]
+            : null,
       ),
     );
   }

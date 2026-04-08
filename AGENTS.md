@@ -60,3 +60,8 @@ Riverpod 3.x, Drift 2.x, Freezed 3.x, Retrofit 4.x, AutoRoute 10.x, Injectable 2
 - Use `flutter test`
 - No special fixtures or services required for unit tests
 - Widget tests use standard Flutter testing utilities
+
+## Features
+
+- Bus ETA auto-refreshes every 15 seconds via timer in BusCard widget
+- 設定中的結算日和出糧日已限制輸入 1-31（settings_page.dart:139-166）
