@@ -136,8 +136,9 @@
   "kg": "公斤",
   "lb": "磅",
   "ft": "呎",
-  "unitInch": "吋",
+"unitInch": "吋",
   "metric": "公制",
   "imperial": "英制",
-  "switchUnit": "切換單位"
+  "exerciseHistory": "运动历史",
+  "switchUnit": "切换单位"
 }

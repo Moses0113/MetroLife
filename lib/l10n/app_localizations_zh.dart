@@ -437,7 +437,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get imperial => '英制';
 
   @override
-  String get switchUnit => '切換單位';
+  String get exerciseHistory => '运动历史';
+
+  @override
+  String get switchUnit => '切换单位';
 }
 
 /// The translations for Chinese, as used in Hong Kong (`zh_HK`).
@@ -871,6 +874,9 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
 
   @override
   String get imperial => '英制';
+
+  @override
+  String get exerciseHistory => '運動歷史';
 
   @override
   String get switchUnit => '切換單位';

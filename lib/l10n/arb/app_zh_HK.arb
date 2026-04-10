@@ -139,5 +139,6 @@
   "unitInch": "吋",
   "metric": "公制",
   "imperial": "英制",
+  "exerciseHistory": "運動歷史",
   "switchUnit": "切換單位"
 }

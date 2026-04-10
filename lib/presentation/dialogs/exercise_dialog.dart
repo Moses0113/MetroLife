@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/domain/providers/exercise_provider.dart';
+import 'package:metrolife/domain/providers/health_provider.dart';
 import 'package:metrolife/domain/providers/achievement_provider.dart';
 import 'package:metrolife/presentation/widgets/diligent_rabbit_overlay.dart';
 
@@ -179,7 +180,7 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     final minutes = int.tryParse(_minutesCtrl.text);
     if (minutes == null || minutes <= 0) return;
     final calories = ExerciseService.calculateExerciseCalories(
@@ -187,15 +188,38 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
       _weightKg,
       minutes,
     );
+    final now = DateTime.now();
+
+    String? healthPlatformId;
+
+    // Sync to Health Connect if connected and has permissions
+    final healthConnected = ref.read(healthConnectedProvider);
+    if (healthConnected) {
+      final hasPerms = await ref.read(healthServiceProvider).hasPermissions();
+      if (hasPerms) {
+        await ref
+            .read(healthServiceProvider)
+            .writeWorkout(
+              exerciseType: _type,
+              start: now,
+              end: now.add(Duration(minutes: minutes)),
+              totalCaloriesBurned: calories,
+            );
+        healthPlatformId = now.millisecondsSinceEpoch.toString();
+      }
+    }
+
     ref
         .read(exerciseServiceProvider)
         .recordExercise(
           type: _type,
-          startTime: DateTime.now(),
+          startTime: now,
           durationSeconds: minutes * 60,
           caloriesBurned: calories,
           weightAtTimeKg: _weightKg,
+          healthPlatformId: healthPlatformId,
         );
+
     Navigator.pop(context);
     Future.delayed(const Duration(milliseconds: 500), () async {
       final streak = await ref.read(streakDaysProvider.future);

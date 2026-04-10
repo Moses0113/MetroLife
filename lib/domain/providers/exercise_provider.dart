@@ -112,6 +112,7 @@ class ExerciseService {
     String? routeJson,
     String? encodedPolyline,
     double? weightAtTimeKg,
+    String? healthPlatformId,
   }) async {
     final unix = startTime.millisecondsSinceEpoch ~/ 1000;
     await _db
@@ -128,6 +129,8 @@ class ExerciseService {
             routeJson: Value(routeJson),
             encodedPolyline: Value(encodedPolyline),
             weightAtTimeKg: Value(weightAtTimeKg),
+            syncedToHealth: Value(healthPlatformId != null ? 1 : 0),
+            healthPlatformId: Value(healthPlatformId),
           ),
         );
   }
@@ -185,5 +188,18 @@ class ExerciseService {
   ) {
     final met = getMetValue(type);
     return UnitUtils.calculateMetCalories(met, weightKg, minutes);
+  }
+
+  /// Delete an exercise record
+  Future<void> deleteExercise(String id) async {
+    await (_db.delete(_db.exerciseRecords)..where((e) => e.id.equals(id))).go();
+  }
+
+  /// Get exercise record by ID
+  Future<ExerciseRecord?> getExerciseById(String id) async {
+    final result = await (_db.select(
+      _db.exerciseRecords,
+    )..where((e) => e.id.equals(id))).getSingleOrNull();
+    return result;
   }
 }

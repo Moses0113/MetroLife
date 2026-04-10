@@ -29,6 +29,8 @@ flutter test --name "test name"          # by name
 4. `dart run drift_dev generate` - generate Drift database (tables in `lib/data/local/tables/*.drift`)
 5. `dart run build_runner build --delete-conflicting-outputs` - Freezed, Retrofit, Riverpod, AutoRoute, JSON
 
+Tip: `bash scripts/build.sh` runs all 5 steps with proper cleanup.
+
 ## Architecture
 
 ```

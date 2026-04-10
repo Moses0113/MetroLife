@@ -931,6 +931,12 @@ abstract class AppLocalizations {
   /// **'英制'**
   String get imperial;
 
+  /// No description provided for @exerciseHistory.
+  ///
+  /// In zh_HK, this message translates to:
+  /// **'運動歷史'**
+  String get exerciseHistory;
+
   /// No description provided for @switchUnit.
   ///
   /// In zh_HK, this message translates to:

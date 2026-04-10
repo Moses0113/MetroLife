@@ -11,6 +11,7 @@ import 'package:metrolife/domain/providers/exercise_provider.dart';
 import 'package:metrolife/domain/providers/user_profile_provider.dart';
 import 'package:metrolife/domain/providers/health_provider.dart';
 import 'package:metrolife/presentation/dialogs/exercise_dialog.dart';
+import 'package:metrolife/data/local/database.dart';
 
 class ExercisePage extends ConsumerStatefulWidget {
   const ExercisePage({super.key});
@@ -190,6 +191,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
         : ref.watch(todayCaloriesProvider);
     final streakAsync = ref.watch(streakDaysProvider);
     final profile = ref.watch(userProfileProvider);
+    final recentExercisesAsync = ref.watch(recentExercisesProvider);
 
     // Sync height/weight controllers with profile
     if (!_heightCtrl.selection.isValid && profile.heightCm > 0) {
@@ -527,6 +529,50 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
               ),
             ),
           ),
+          const SizedBox(height: AppTheme.spacingMd),
+
+          // Exercise History
+          Text(
+            l10n.exerciseHistory,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
+          recentExercisesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingMd),
+                child: Center(child: Text(l10n.noData)),
+              ),
+            ),
+            data: (exercises) {
+              if (exercises.isEmpty) {
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.spacingMd),
+                    child: Center(
+                      child: Text(
+                        l10n.noData,
+                        style: const TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Card(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: exercises.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final exercise = exercises[index];
+                    return _buildExerciseHistoryItem(exercise, l10n);
+                  },
+                ),
+              );
+            },
+          ),
           const SizedBox(height: 80),
         ],
       ),
@@ -678,5 +724,93 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
     if (bmi < 25) return AppTheme.success;
     if (bmi < 30) return AppTheme.warning;
     return AppTheme.danger;
+  }
+
+  Widget _buildExerciseHistoryItem(
+    ExerciseRecord exercise,
+    AppLocalizations l10n,
+  ) {
+    final icon = _getExerciseIcon(exercise.type);
+    final label = _getExerciseLabel(exercise.type, l10n);
+    final duration = exercise.durationSeconds ?? 0;
+    final minutes = duration ~/ 60;
+    final date = DateTime.fromMillisecondsSinceEpoch(
+      (exercise.startTime ?? 0) * 1000,
+    );
+    final dateStr =
+        '${date.month}/${date.day} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+
+    return Dismissible(
+      key: Key(exercise.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: AppTheme.danger,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppTheme.spacingMd),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (_) async {
+        final healthConnected = ref.read(healthConnectedProvider);
+        if (healthConnected && exercise.healthPlatformId != null) {
+          final startTime = DateTime.fromMillisecondsSinceEpoch(
+            (exercise.startTime ?? 0) * 1000,
+          );
+          final duration = Duration(seconds: exercise.durationSeconds ?? 0);
+          await ref
+              .read(healthServiceProvider)
+              .deleteWorkouts(startTime, startTime.add(duration));
+        }
+        ref.read(exerciseServiceProvider).deleteExercise(exercise.id);
+        ref.invalidate(todayCaloriesProvider);
+        ref.invalidate(healthCaloriesProvider);
+        ref.invalidate(healthStepsProvider);
+        ref.invalidate(recentExercisesProvider);
+        ref.invalidate(streakDaysProvider);
+      },
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.accentPrimary.withValues(alpha: 0.1),
+          child: Icon(icon, color: AppTheme.accentPrimary, size: 20),
+        ),
+        title: Text(label),
+        subtitle: Text(
+          '$minutes 分鐘 • $dateStr',
+          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        ),
+        trailing: exercise.caloriesBurned != null
+            ? Text(
+                '${exercise.caloriesBurned!.toStringAsFixed(0)} kcal',
+                style: const TextStyle(
+                  color: AppTheme.warning,
+                  fontWeight: FontWeight.w600,
+                ),
+              )
+            : null,
+      ),
+    );
+  }
+
+  IconData _getExerciseIcon(String type) {
+    return switch (type) {
+      'running' => Icons.directions_run,
+      'swimming' => Icons.pool,
+      'cycling' => Icons.directions_bike,
+      'table_tennis' => Icons.sports_tennis,
+      'yoga' => Icons.self_improvement,
+      'gym' => Icons.fitness_center,
+      _ => Icons.sports,
+    };
+  }
+
+  String _getExerciseLabel(String type, AppLocalizations l10n) {
+    return switch (type) {
+      'running' => l10n.running,
+      'swimming' => l10n.swimming,
+      'cycling' => l10n.cycling,
+      'table_tennis' => l10n.tableTennis,
+      'yoga' => l10n.yoga,
+      'gym' => l10n.gym,
+      _ => l10n.others,
+    };
   }
 }

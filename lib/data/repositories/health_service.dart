@@ -234,4 +234,30 @@ class HealthService {
         return HealthWorkoutActivityType.OTHER;
     }
   }
+
+  /// Delete workouts in a time range
+  Future<bool> deleteWorkouts(DateTime start, DateTime end) async {
+    _ensureConfigured();
+    try {
+      await _health.delete(
+        type: HealthDataType.WORKOUT,
+        startTime: start,
+        endTime: end,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Delete workout by UUID
+  Future<bool> deleteWorkoutByUuid(String uuid) async {
+    _ensureConfigured();
+    try {
+      await _health.deleteByUUID(uuid: uuid, type: HealthDataType.WORKOUT);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }
