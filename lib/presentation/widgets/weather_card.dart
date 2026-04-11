@@ -44,7 +44,7 @@ class WeatherCard extends ConsumerWidget {
           const SizedBox(height: AppTheme.spacingSm),
           warningsAsync.when(
             loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
+            error: (_, _) => const SizedBox(),
             data: (warnings) => _buildWarnings(context, warnings),
           ),
           const SizedBox(height: AppTheme.spacingSm),

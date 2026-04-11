@@ -1,7 +1,7 @@
 /// HKO Weather Service
 /// 參考: prd.md Section 5.1
+library;
 
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:metrolife/core/constants/api_constants.dart';
 import 'package:metrolife/data/models/weather_models.dart';

@@ -1,11 +1,11 @@
 /// 番茄鐘全屏頁面
 /// 參考: prd.md §3.5, UI.md §4.1
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
 import 'package:metrolife/domain/providers/focus_timer_provider.dart';
-import 'package:metrolife/presentation/widgets/diligent_rabbit_overlay.dart';
 
 class FocusTimerPage extends ConsumerWidget {
   const FocusTimerPage({super.key});
@@ -170,8 +170,8 @@ class FocusTimerPage extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.play_arrow, color: Colors.white),
-            SizedBox(width: 8),
+            const Icon(Icons.play_arrow, color: Colors.white),
+            const SizedBox(width: 8),
             Text(
               isBreak ? '開始休息' : '開始專注',
               style: const TextStyle(

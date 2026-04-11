@@ -1,5 +1,6 @@
 /// Date formatting utilities (British format: DD/MM/YYYY)
 /// 參考: prd.md Section 9.1
+library;
 
 import 'package:intl/intl.dart';
 import '../constants/app_constants.dart';

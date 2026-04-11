@@ -1,5 +1,6 @@
 /// Unit conversion utilities
 /// 參考: prd.md Section 10.1
+library;
 
 class UnitUtils {
   UnitUtils._();

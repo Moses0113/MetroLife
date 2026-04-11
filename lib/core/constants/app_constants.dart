@@ -1,5 +1,6 @@
 /// App-wide constants for MetroLife
 /// 參考: prd.md Section 1, 2.1, 3.5
+library;
 
 class AppConstants {
   AppConstants._();

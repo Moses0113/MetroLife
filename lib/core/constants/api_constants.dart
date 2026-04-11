@@ -1,5 +1,6 @@
 /// API endpoint constants
 /// 參考: prd.md Section 5.1 (HKO) & 5.2 (KMB)
+library;
 
 class ApiConstants {
   ApiConstants._();

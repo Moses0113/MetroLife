@@ -1,4 +1,5 @@
 /// 巴士卡片 Widget (UI.md §3.1)
+library;
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -209,7 +210,7 @@ class _BusCardState extends ConsumerState<BusCard> {
         height: 40,
         child: Center(child: LinearProgressIndicator()),
       ),
-      error: (_, __) => const SizedBox(),
+      error: (_, _) => const SizedBox(),
       data: (etas) {
         if (etas.isEmpty) {
           return const Text(

@@ -1,5 +1,6 @@
 /// KMB Bus Service
 /// 參考: prd.md Section 5.2
+library;
 
 import 'dart:convert';
 import 'package:dio/dio.dart';

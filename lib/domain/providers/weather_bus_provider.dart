@@ -1,5 +1,6 @@
 /// Weather & Bus Riverpod Providers
 /// 參考: prd.md Section 3.1, 5.1, 5.2
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';

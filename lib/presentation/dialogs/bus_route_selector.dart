@@ -1,4 +1,5 @@
 /// 巴士綫選擇器 — 直接輸入綫號，無需先選站
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,7 +8,6 @@ import 'package:metrolife/core/utils/unit_utils.dart';
 import 'package:metrolife/data/models/bus_models.dart';
 import 'package:metrolife/domain/providers/weather_bus_provider.dart';
 import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
-import 'package:metrolife/data/repositories/kmb_bus_service.dart';
 
 class BusRouteSelector extends ConsumerStatefulWidget {
   const BusRouteSelector({super.key});
@@ -222,7 +222,7 @@ class _BusRouteSelectorState extends ConsumerState<BusRouteSelector> {
                 ),
                 child: routesAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const SizedBox(),
+                  error: (_, _) => const SizedBox(),
                   data: (allRoutes) => TextField(
                     controller: _routeCtrl,
                     decoration: InputDecoration(

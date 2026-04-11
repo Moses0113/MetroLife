@@ -1,5 +1,6 @@
 /// 勤力兔 Overlay 組件
 /// 參考: prd.md Section 6.2-6.3, UI.md Section 4.2
+library;
 
 import 'dart:async';
 import 'dart:math';

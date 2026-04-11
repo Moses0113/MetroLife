@@ -1,5 +1,6 @@
 /// To-Do Riverpod Providers
 /// 參考: prd.md Section 3.2B, 4.1
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';

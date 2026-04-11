@@ -1,5 +1,6 @@
 /// Currency formatting ($X,XXX.XX)
 /// 參考: prd.md Section 3.3
+library;
 
 import 'package:intl/intl.dart';
 

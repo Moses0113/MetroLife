@@ -1,5 +1,6 @@
 /// 運動記錄 Dialog
 /// 參考: prd.md Section 3.4D
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -197,7 +198,7 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
     if (healthConnected) {
       final hasPerms = await ref.read(healthServiceProvider).hasPermissions();
       if (hasPerms) {
-        await ref
+        final success = await ref
             .read(healthServiceProvider)
             .writeWorkout(
               exerciseType: _type,
@@ -205,7 +206,9 @@ class _ExerciseDialogState extends ConsumerState<ExerciseDialog> {
               end: now.add(Duration(minutes: minutes)),
               totalCaloriesBurned: calories,
             );
-        healthPlatformId = now.millisecondsSinceEpoch.toString();
+        if (success) {
+          healthPlatformId = now.millisecondsSinceEpoch.toString();
+        }
       }
     }
 

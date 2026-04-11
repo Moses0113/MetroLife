@@ -1,4 +1,5 @@
 /// 日常頁 - 完整實現 (prd.md §3.2, UI.md §3.2)
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
@@ -137,18 +138,18 @@ class _CalendarTab extends ConsumerWidget {
               selectedDayPredicate: (day) => isSameDay(day, selectedDay),
               onDaySelected: onDaySelected,
               locale: 'zh_HK',
-              headerStyle: HeaderStyle(
+              headerStyle: const HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
-                titleTextStyle: const TextStyle(
+                titleTextStyle: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
-                leftChevronIcon: const Icon(
+                leftChevronIcon: Icon(
                   Icons.chevron_left,
                   color: AppTheme.accentPrimary,
                 ),
-                rightChevronIcon: const Icon(
+                rightChevronIcon: Icon(
                   Icons.chevron_right,
                   color: AppTheme.accentPrimary,
                 ),
@@ -222,7 +223,7 @@ class _CalendarTab extends ConsumerWidget {
                 const Divider(),
                 todosAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => Text(l10n.error),
+                  error: (_, _) => Text(l10n.error),
                   data: (todos) {
                     if (todos.isEmpty) {
                       return Padding(
@@ -283,7 +284,7 @@ class _CalendarTab extends ConsumerWidget {
                 const Divider(),
                 diaryAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => Text(l10n.error),
+                  error: (_, _) => Text(l10n.error),
                   data: (diary) {
                     if (diary == null) {
                       return Padding(
@@ -535,7 +536,7 @@ class _TodoTabState extends ConsumerState<_TodoTab> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.checklist,
                         size: 64,
                         color: AppTheme.textTertiary,

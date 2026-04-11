@@ -1,11 +1,10 @@
 /// Balance Calculator Provider
 /// 根據結算日計算上月結餘及總結餘
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart';
 import 'package:metrolife/data/local/database.dart';
 import 'package:metrolife/domain/providers/database_provider.dart';
-import 'package:metrolife/domain/providers/user_profile_provider.dart';
 
 class PeriodBalance {
   final double income;

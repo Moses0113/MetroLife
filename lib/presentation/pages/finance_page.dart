@@ -1,4 +1,5 @@
 /// 記帳頁 - 完整實現 (prd.md §3.3, UI.md §3.3)
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -62,7 +63,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
           // Balance Card (based on settlement day)
           balanceAsync.when(
             loading: () => _buildBalanceCard(0, 0, 0, isDark),
-            error: (_, __) => _buildBalanceCard(0, 0, 0, isDark),
+            error: (_, _) => _buildBalanceCard(0, 0, 0, isDark),
             data: (balance) => _buildBalanceCard(
               balance.currentPeriod.balance,
               balance.currentPeriod.income,
@@ -94,7 +95,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                             height: 180,
                             child: Center(child: CircularProgressIndicator()),
                           ),
-                          error: (_, __) => const SizedBox(
+                          error: (_, _) => const SizedBox(
                             height: 180,
                             child: Center(child: Text('無法載入圖表')),
                           ),
@@ -108,7 +109,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                             height: 150,
                             child: Center(child: CircularProgressIndicator()),
                           ),
-                          error: (_, __) => const SizedBox(
+                          error: (_, _) => const SizedBox(
                             height: 150,
                             child: Center(child: Text('無法載入圖表')),
                           ),
@@ -130,7 +131,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
 
           transactionsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.error),
+            error: (_, _) => Text(l10n.error),
             data: (transactions) {
               if (transactions.isEmpty) {
                 return Card(
@@ -138,7 +139,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                     padding: const EdgeInsets.all(AppTheme.spacingLg),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.receipt_long,
                           size: 24,
                           color: AppTheme.textTertiary,
@@ -195,7 +196,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
         children: [
           Row(
             children: [
-              Text(
+              const Text(
                 '本月結餘',
                 style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
               ),
@@ -204,7 +205,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
                 Expanded(
                   child: Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 11,
                       color: AppTheme.textTertiary,
                     ),
@@ -310,7 +311,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
 
     return categoriesAsync.when(
       loading: () => const SizedBox(height: 150),
-      error: (_, __) => const SizedBox(height: 150),
+      error: (_, _) => const SizedBox(height: 150),
       data: (categories) {
         final catMap = {for (var c in categories) c.id: c};
 
@@ -581,7 +582,7 @@ class _FinancePageState extends ConsumerState<FinancePage> {
           ),
           title: categoriesAsync.when(
             loading: () => Text(t.categoryId),
-            error: (_, __) => Text(t.categoryId),
+            error: (_, _) => Text(t.categoryId),
             data: (cats) {
               final cat = cats.where((c) => c.id == t.categoryId).firstOrNull;
               return Text(cat?.name ?? t.categoryId);

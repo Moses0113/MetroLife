@@ -1,5 +1,6 @@
 /// 編輯日記 Dialog
 /// 參考: prd.md Section 3.2C
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

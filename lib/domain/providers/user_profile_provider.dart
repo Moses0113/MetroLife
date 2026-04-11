@@ -1,5 +1,6 @@
 /// User Profile Provider (height/weight/username sync)
 /// 參考: prd.md Section 3.5
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';

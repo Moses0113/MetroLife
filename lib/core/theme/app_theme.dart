@@ -81,7 +81,7 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: bgPrimary,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: accentPrimary,
       secondary: accentSecondary,
       surface: bgSecondary,
@@ -100,13 +100,13 @@ class AppTheme {
         fontFamily: 'NotoSansTC',
       ),
     ),
-    cardTheme: CardThemeData(
+    cardTheme: const CardThemeData(
       color: bgSecondary,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(radiusMedium)),
       ),
-      margin: const EdgeInsets.symmetric(vertical: spacingSm),
+      margin: EdgeInsets.symmetric(vertical: spacingSm),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -152,7 +152,7 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: bgPrimaryDark,
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: accentPrimary,
       secondary: accentSecondary,
       surface: bgSecondaryDark,
@@ -171,13 +171,13 @@ class AppTheme {
         fontFamily: 'NotoSansTC',
       ),
     ),
-    cardTheme: CardThemeData(
+    cardTheme: const CardThemeData(
       color: bgSecondaryDark,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(radiusMedium)),
       ),
-      margin: const EdgeInsets.symmetric(vertical: spacingSm),
+      margin: EdgeInsets.symmetric(vertical: spacingSm),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

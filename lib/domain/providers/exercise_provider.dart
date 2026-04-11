@@ -1,5 +1,6 @@
 /// Exercise Riverpod Providers
 /// 參考: prd.md Section 3.4, 4.1
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';

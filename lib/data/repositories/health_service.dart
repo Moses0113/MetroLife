@@ -1,6 +1,7 @@
 /// Health Connect Service
 /// 參考: prd.md Section 4.2, 7.1
 /// https://pub.dev/packages/health
+library;
 
 import 'dart:io';
 import 'package:health/health.dart';

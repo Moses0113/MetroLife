@@ -1,5 +1,6 @@
 /// 首次啟動歡迎頁
 /// 參考: prd.md Section 6.3
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

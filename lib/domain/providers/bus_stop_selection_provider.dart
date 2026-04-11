@@ -1,12 +1,12 @@
 /// Bus Stop Selection Provider — user-selected stop + search history
 /// 參考: prd.md Section 5.2
+library;
 
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:metrolife/data/models/bus_models.dart';
-import 'package:metrolife/data/repositories/kmb_bus_service.dart';
 import 'package:metrolife/domain/providers/weather_bus_provider.dart';
 
 /// Selected bus stop (user can change this)

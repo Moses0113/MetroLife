@@ -1,5 +1,6 @@
 /// Focus Timer (Pomodoro) Riverpod Provider
 /// 參考: prd.md Section 3.5
+library;
 
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

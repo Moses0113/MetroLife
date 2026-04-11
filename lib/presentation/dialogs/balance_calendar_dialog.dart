@@ -1,4 +1,5 @@
 /// 結餘日曆 Dialog — 查閱上月結餘及總結餘
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -113,7 +114,7 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
               ),
               child: balanceAsync.when(
                 loading: () => _buildBalanceCardsLoading(),
-                error: (_, __) => _buildBalanceCardsLoading(),
+                error: (_, _) => _buildBalanceCardsLoading(),
                 data: (balance) => _buildBalanceCards(balance),
               ),
             ),
@@ -130,7 +131,7 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
                   // Monthly detail
                   monthlySummaryAsync.when(
                     loading: () => const SizedBox(),
-                    error: (_, __) => const SizedBox(),
+                    error: (_, _) => const SizedBox(),
                     data: (summary) => _buildMonthlyDetail(summary),
                   ),
                   const SizedBox(height: AppTheme.spacingLg),
@@ -202,13 +203,13 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(fontSize: 10, color: AppTheme.textTertiary),
+              style: const TextStyle(fontSize: 10, color: AppTheme.textTertiary),
             ),
           ],
           const SizedBox(height: 4),

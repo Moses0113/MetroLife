@@ -1,5 +1,6 @@
 /// 新增收支 Dialog
 /// 參考: prd.md Section 3.3, UI.md Section 3.3
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,7 +101,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   }
                   if (cats.isEmpty) return const Text('暫無分類，請先在設定中添加');
                   return DropdownButtonFormField<String>(
-                    value: cats.any((c) => c.id == _categoryId)
+                    initialValue: cats.any((c) => c.id == _categoryId)
                         ? _categoryId
                         : null,
                     decoration: const InputDecoration(labelText: '分類'),
@@ -217,8 +218,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     Navigator.pop(context);
     if (_type == 'income') {
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (context.mounted)
+        if (context.mounted) {
           DiligentRabbitOverlay.show(context, scene: RabbitScene.incomeAdded);
+        }
       });
     }
   }

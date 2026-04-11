@@ -1,8 +1,8 @@
 /// 巴士站選擇器 Dialog
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
-import 'package:metrolife/data/repositories/kmb_bus_service.dart';
 import 'package:metrolife/domain/providers/bus_stop_selection_provider.dart';
 import 'package:metrolife/domain/providers/weather_bus_provider.dart';
 
@@ -189,7 +189,7 @@ class _BusStopSelectorState extends ConsumerState<BusStopSelector> {
               child: LinearProgressIndicator(),
             ),
           ),
-          error: (_, __) => const Card(
+          error: (_, _) => const Card(
             child: Padding(padding: EdgeInsets.all(16), child: Text('無法取得位置')),
           ),
           data: (stops) => Column(

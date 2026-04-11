@@ -1,5 +1,6 @@
 /// HKO Weather Freezed Models (Freezed 3.x syntax)
 /// 參考: prd.md Section 5.1
+library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 

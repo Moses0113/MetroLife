@@ -1,4 +1,6 @@
 /// 運動頁 - 完整實現 (prd.md §3.4, UI.md §3.4)
+library;
+
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -374,7 +376,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        error: (_, __) => const Text(
+                        error: (_, _) => const Text(
                           '0',
                           style: TextStyle(
                             fontSize: 28,
@@ -432,7 +434,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        error: (_, __) => const Text(
+                        error: (_, _) => const Text(
                           '0',
                           style: TextStyle(
                             fontSize: 28,
@@ -522,7 +524,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
                   streakAsync.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => const SizedBox(),
+                    error: (_, _) => const SizedBox(),
                     data: (streak) => _buildMedals(context, streak, l10n),
                   ),
                 ],
@@ -539,7 +541,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
           const SizedBox(height: AppTheme.spacingSm),
           recentExercisesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Card(
+            error: (_, _) => Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppTheme.spacingMd),
                 child: Center(child: Text(l10n.noData)),
@@ -564,7 +566,7 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: exercises.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final exercise = exercises[index];
                     return _buildExerciseHistoryItem(exercise, l10n);
@@ -750,15 +752,23 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) async {
-        final healthConnected = ref.read(healthConnectedProvider);
-        if (healthConnected && exercise.healthPlatformId != null) {
-          final startTime = DateTime.fromMillisecondsSinceEpoch(
-            (exercise.startTime ?? 0) * 1000,
-          );
-          final duration = Duration(seconds: exercise.durationSeconds ?? 0);
-          await ref
-              .read(healthServiceProvider)
-              .deleteWorkouts(startTime, startTime.add(duration));
+        if (exercise.healthPlatformId != null) {
+          final healthConnected = ref.read(healthConnectedProvider);
+          if (healthConnected) {
+            final hasPerms = await ref
+                .read(healthServiceProvider)
+                .hasPermissions();
+            if (hasPerms) {
+              final startTime = DateTime.fromMillisecondsSinceEpoch(
+                (exercise.startTime ?? 0) * 1000,
+              );
+              final duration = Duration(seconds: exercise.durationSeconds ?? 0);
+              await ref
+                  .read(healthServiceProvider)
+                  .deleteWorkouts(startTime, startTime.add(duration));
+              await Future.delayed(const Duration(milliseconds: 300));
+            }
+          }
         }
         ref.read(exerciseServiceProvider).deleteExercise(exercise.id);
         ref.invalidate(todayCaloriesProvider);

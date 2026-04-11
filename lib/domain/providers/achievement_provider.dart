@@ -1,5 +1,6 @@
 /// Achievement Provider - Medal unlocking logic
 /// 參考: prd.md Section 3.4E, 6.3
+library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';

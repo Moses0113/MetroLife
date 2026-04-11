@@ -1,8 +1,8 @@
 /// 勤力兔 SVG 佔位圖 (簡約版)
 /// 參考: prd.md Section 6.1
 /// 使用程式化圓形兔子臉作為佔位符
+library;
 
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

@@ -1,4 +1,5 @@
 /// 設定頁 - 完整實現 (prd.md §3.5)
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -412,7 +413,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       subtitle: Text(subtitle),
       value: value,
       onChanged: onChanged,
-      activeColor: AppTheme.accentPrimary,
+      activeThumbColor: AppTheme.accentPrimary,
     );
   }
 

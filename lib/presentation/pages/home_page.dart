@@ -1,4 +1,5 @@
 /// 首頁 - 中央樞紐 (prd.md §3.1, UI.md §3.1)
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:metrolife/core/theme/app_theme.dart';
@@ -69,7 +70,7 @@ class HomePage extends ConsumerWidget {
             const SizedBox(height: AppTheme.spacingMd),
 
             // Bus Card (prd.md §3.1 + UI.md §3.1)
-            BusCard(),
+            const BusCard(),
             const SizedBox(height: AppTheme.spacingMd),
 
             // Tasks Preview (prd.md §3.1)
@@ -143,7 +144,7 @@ class HomePage extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 8),
         child: LinearProgressIndicator(),
       ),
-      error: (_, __) => Text(
+      error: (_, _) => Text(
         l10n.error,
         style: const TextStyle(color: AppTheme.textSecondary),
       ),
@@ -170,7 +171,7 @@ class HomePage extends ConsumerWidget {
                           .read(todoServiceProvider)
                           .toggleComplete(todo.id, true);
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.check_circle_outline,
                       size: 20,
                       color: AppTheme.accentPrimary,

@@ -1,5 +1,6 @@
 /// 新增/編輯待辦 Dialog
 /// 參考: prd.md Section 3.2B, UI.md Section 3.2B
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -107,7 +108,7 @@ class _AddTodoDialogState extends ConsumerState<AddTodoDialog> {
               const SizedBox(height: AppTheme.spacingMd),
               if (_type == 'document') ...[
                 DropdownButtonFormField<String>(
-                  value: _documentType,
+                  initialValue: _documentType,
                   decoration: const InputDecoration(labelText: '證件類型'),
                   items: const [
                     DropdownMenuItem(value: 'hkid', child: Text('身份證')),
