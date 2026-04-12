@@ -159,15 +159,25 @@ class TransactionService {
     await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
   }
 
+  int _lastDayOfMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
+  }
+
+  int _clampDayToMonth(int day, int year, int month) {
+    final lastDay = _lastDayOfMonth(year, month);
+    return day > lastDay ? lastDay : day;
+  }
+
   /// Check and create auto-salary if salary day has passed
   Future<void> checkAutoSalary({
     required int salaryDay,
     required double monthlySalary,
   }) async {
-    if (monthlySalary <= 0 || salaryDay < 1 || salaryDay > 31) return;
+    if (monthlySalary <= 0 || salaryDay < 1) return;
 
     final now = DateTime.now();
-    final thisMonthSalaryDate = DateTime(now.year, now.month, salaryDay);
+    final validSalaryDay = _clampDayToMonth(salaryDay, now.year, now.month);
+    final thisMonthSalaryDate = DateTime(now.year, now.month, validSalaryDay);
 
     // Only create if today is on or after salary day
     if (now.isBefore(thisMonthSalaryDate)) return;

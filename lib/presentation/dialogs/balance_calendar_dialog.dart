@@ -1,5 +1,6 @@
 /// 結餘日曆 Dialog — 查閱上月結餘及總結餘
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -209,7 +210,10 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 10, color: AppTheme.textTertiary),
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppTheme.textTertiary,
+              ),
             ),
           ],
           const SizedBox(height: 4),
@@ -238,6 +242,15 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
         ],
       ),
     );
+  }
+
+  int _lastDayOfMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
+  }
+
+  int _clampDayToMonth(int day, int year, int month) {
+    final lastDay = _lastDayOfMonth(year, month);
+    return day > lastDay ? lastDay : day;
   }
 
   Widget _buildCalendar(bool isDark, AsyncValue<MonthlySummary> summaryAsync) {
@@ -281,8 +294,18 @@ class _BalanceCalendarDialogState extends ConsumerState<BalanceCalendarDialog> {
         ),
         calendarBuilders: CalendarBuilders(
           markerBuilder: (context, date, events) {
-            final isSettlementDay = date.day == settlementDay;
-            final isSalaryDay = date.day == salaryDay;
+            final effectiveSettlementDay = _clampDayToMonth(
+              settlementDay,
+              date.year,
+              date.month,
+            );
+            final effectiveSalaryDay = _clampDayToMonth(
+              salaryDay,
+              date.year,
+              date.month,
+            );
+            final isSettlementDay = date.day == effectiveSettlementDay;
+            final isSalaryDay = date.day == effectiveSalaryDay;
 
             if (!isSettlementDay && !isSalaryDay) return null;
 

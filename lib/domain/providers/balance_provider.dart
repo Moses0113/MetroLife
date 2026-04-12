@@ -37,9 +37,22 @@ class MonthlyPeriodBalance {
   });
 }
 
+int _lastDayOfMonth(int year, int month) {
+  return DateTime(year, month + 1, 0).day;
+}
+
+int _clampDayToMonth(int day, int year, int month) {
+  final lastDay = _lastDayOfMonth(year, month);
+  return day > lastDay ? lastDay : day;
+}
+
 /// 計算結算週期的起止日期
 DateTime _periodStart(int settlementDay, DateTime referenceDate) {
-  final day = settlementDay.clamp(1, 31);
+  final day = _clampDayToMonth(
+    settlementDay,
+    referenceDate.year,
+    referenceDate.month,
+  );
   if (referenceDate.day >= day) {
     return DateTime(referenceDate.year, referenceDate.month, day);
   } else {
